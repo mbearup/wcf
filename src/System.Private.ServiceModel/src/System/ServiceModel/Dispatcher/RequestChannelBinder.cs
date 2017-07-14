@@ -8,11 +8,11 @@ using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class RequestChannelBinder : IChannelBinder
+    public class RequestChannelBinder : IChannelBinder
     {
         private IRequestChannel _channel;
 
-        internal RequestChannelBinder(IRequestChannel channel)
+        public RequestChannelBinder(IRequestChannel channel)
         {
             if (channel == null)
             {

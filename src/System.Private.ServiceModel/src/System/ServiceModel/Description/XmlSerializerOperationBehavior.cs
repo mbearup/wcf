@@ -71,7 +71,7 @@ namespace System.ServiceModel.Description
             }
         }
 
-        internal static XmlSerializerOperationFormatter CreateOperationFormatter(OperationDescription operation)
+        public static XmlSerializerOperationFormatter CreateOperationFormatter(OperationDescription operation)
         {
             return new XmlSerializerOperationBehavior(operation).CreateFormatter();
         }

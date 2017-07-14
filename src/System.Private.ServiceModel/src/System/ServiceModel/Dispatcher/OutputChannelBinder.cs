@@ -11,11 +11,11 @@ using System.ServiceModel.Diagnostics;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class OutputChannelBinder : IChannelBinder
+    public class OutputChannelBinder : IChannelBinder
     {
         private IOutputChannel _channel;
 
-        internal OutputChannelBinder(IOutputChannel channel)
+        public OutputChannelBinder(IOutputChannel channel)
         {
             if (channel == null)
             {

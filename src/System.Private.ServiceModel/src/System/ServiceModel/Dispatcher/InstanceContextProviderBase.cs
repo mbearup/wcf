@@ -7,7 +7,7 @@ using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal abstract class InstanceContextProviderBase : IInstanceContextProvider
+    public abstract class InstanceContextProviderBase : IInstanceContextProvider
     {
         private readonly DispatchRuntime _dispatchRuntime;
 
@@ -16,7 +16,7 @@ namespace System.ServiceModel.Dispatcher
             _dispatchRuntime = dispatchRuntime;
         }
 
-        internal static bool IsProviderSingleton(IInstanceContextProvider provider)
+        public static bool IsProviderSingleton(IInstanceContextProvider provider)
         {
             return false;
         }

@@ -198,7 +198,7 @@ namespace System.ServiceModel
             }
         }
 
-        internal static EndpointAddress AnonymousAddress
+        public static EndpointAddress AnonymousAddress
         {
             get
             {

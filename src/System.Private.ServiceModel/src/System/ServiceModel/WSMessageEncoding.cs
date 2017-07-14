@@ -8,6 +8,7 @@ namespace System.ServiceModel
     public enum WSMessageEncoding
     {
         Text = 0,
+        Mtom = 1
     }
 
     internal static class WSMessageEncodingHelper

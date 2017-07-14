@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace System.ServiceModel.Description
 {
-    internal class CustomAttributeProvider
+    public class CustomAttributeProvider
     {
         private enum AttributeProviderType
         {

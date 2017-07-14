@@ -20,7 +20,7 @@ namespace System.ServiceModel.Diagnostics
                 _traceName = traceName;
         }
 
-        internal override string EventId { get { return BuildEventId(_traceName); } }
+        public override string EventId { get { return BuildEventId(_traceName); } }
     }
 
     internal static class SecurityTraceRecordHelper

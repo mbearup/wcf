@@ -661,7 +661,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal void ThrowIfClosed()
+        public void ThrowIfClosed()
         {
             ThrowPending();
 
@@ -724,7 +724,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal void ThrowIfClosedOrOpened()
+        protected internal void ThrowIfClosedOrOpened()
         {
             ThrowPending();
 
@@ -811,13 +811,13 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal void ThrowIfNotOpened()
+        public void ThrowIfNotOpened()
         {
             if (_state == CommunicationState.Created || _state == CommunicationState.Opening)
                 throw TraceUtility.ThrowHelperError(this.CreateNotOpenException(), Guid.Empty, this);
         }
 
-        internal void ThrowIfClosedOrNotOpen()
+        public void ThrowIfClosedOrNotOpen()
         {
             ThrowPending();
 

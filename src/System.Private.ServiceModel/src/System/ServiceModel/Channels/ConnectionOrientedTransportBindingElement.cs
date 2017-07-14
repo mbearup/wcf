@@ -161,7 +161,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal override bool IsMatch(BindingElement b)
+        public override bool IsMatch(BindingElement b)
         {
             if (!base.IsMatch(b))
                 return false;

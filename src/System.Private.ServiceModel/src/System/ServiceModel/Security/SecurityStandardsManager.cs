@@ -17,7 +17,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.ServiceModel.Security
 {
-    internal class SecurityStandardsManager
+    public class SecurityStandardsManager
     {
 #pragma warning disable 0649 // Remove this once we do real implementation, this prevents "field is never assigned to" warning
         private static SecurityStandardsManager s_instance;

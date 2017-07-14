@@ -79,7 +79,7 @@ namespace System.ServiceModel.Dispatcher
             }
         }
 
-        internal IDispatchMessageFormatter Formatter
+        public IDispatchMessageFormatter Formatter
         {
             get { return _formatter; }
             set

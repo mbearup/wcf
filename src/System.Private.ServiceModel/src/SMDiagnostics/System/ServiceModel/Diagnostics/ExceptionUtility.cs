@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -29,13 +30,12 @@ namespace System.ServiceModel.Diagnostics
         private static Guid s_activityId;
 
         [Obsolete("For SMDiagnostics.dll use only. Call DiagnosticUtility.ExceptionUtility instead")]
-        internal ExceptionUtility(string name, string eventSourceName, object exceptionTrace)
+        public ExceptionUtility(string name, string eventSourceName, object exceptionTrace, object obj = null)
         {
             _exceptionTrace = (ExceptionTrace)exceptionTrace;
             _name = name;
             _eventSourceName = eventSourceName;
         }
-
 
         public ArgumentException ThrowHelperArgument(string message)
         {
@@ -102,19 +102,19 @@ namespace System.ServiceModel.Diagnostics
             return ThrowHelper(exception, EventLevel.Warning);
         }
 
-        internal Exception ThrowHelper(Exception exception, EventLevel eventLevel)
+        public Exception ThrowHelper(Exception exception, EventLevel eventLevel)
         {
             FxTrace.Exception.TraceEtwException(exception, eventLevel);
 
             return exception;
         }
 
-        internal Exception ThrowHelperXml(XmlReader reader, string message)
+        public Exception ThrowHelperXml(XmlReader reader, string message)
         {
             return this.ThrowHelperXml(reader, message, null);
         }
 
-        internal Exception ThrowHelperXml(XmlReader reader, string message, Exception inner)
+        public Exception ThrowHelperXml(XmlReader reader, string message, Exception inner)
         {
             IXmlLineInfo lineInfo = reader as IXmlLineInfo;
             return this.ThrowHelperError(new XmlException(
@@ -122,6 +122,16 @@ namespace System.ServiceModel.Diagnostics
                 inner,
                 (null != lineInfo) ? lineInfo.LineNumber : 0,
                 (null != lineInfo) ? lineInfo.LinePosition : 0));
+        }
+
+        public void TraceFailFast(string message)
+        {
+             // Not implemented
+        }
+
+        public void TraceFailFastException(Exception ex)
+        {
+             // Not implemented
         }
 
         // On a single thread, these functions will complete just fine

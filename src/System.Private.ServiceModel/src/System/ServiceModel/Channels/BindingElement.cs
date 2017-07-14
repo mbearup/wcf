@@ -37,12 +37,12 @@ namespace System.ServiceModel.Channels
 
         public abstract T GetProperty<T>(BindingContext context) where T : class;
 
-        internal T GetIndividualProperty<T>() where T : class
+        public T GetIndividualProperty<T>() where T : class
         {
             return this.GetProperty<T>(new BindingContext(new CustomBinding(), new BindingParameterCollection()));
         }
 
-        internal virtual bool IsMatch(BindingElement b)
+        public virtual bool IsMatch(BindingElement b)
         {
             Fx.Assert(true, "Should not be called unless this binding element is used in one of the standard bindings. In which case, please re-implement the IsMatch() method.");
             return false;

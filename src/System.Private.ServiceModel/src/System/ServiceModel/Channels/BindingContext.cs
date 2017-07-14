@@ -50,6 +50,17 @@ namespace System.ServiceModel.Channels
             get { return _binding; }
         }
 
+        public bool CanBuildInnerChannelListener<TChannel>() where TChannel : class, IChannel
+        { 
+            // Not fully implemented in .NET Core
+            return false;
+        }
+
+        public IChannelListener<TChannel> BuildInnerChannelListener<TChannel>() where TChannel : class, IChannel
+        {
+            throw new NotImplementedException("BuildInnerChannelListener is not implemented in .NET Core");
+        }
+
         public BindingParameterCollection BindingParameters
         {
             get { return _bindingParameters; }

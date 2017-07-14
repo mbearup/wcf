@@ -5,6 +5,10 @@
 
 using System.Globalization;
 using System.Text;
+#region Needed for SecurityToken and securityTokenRequirement classes
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
+#endregion
 
 namespace System.ServiceModel.Security.Tokens
 {
@@ -13,6 +17,8 @@ namespace System.ServiceModel.Security.Tokens
         internal const bool defaultRequireDerivedKeys = true;
 
         private bool _requireDerivedKeys = defaultRequireDerivedKeys;
+
+        public SecurityTokenInclusionMode InclusionMode {get; set;}
 
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {
@@ -66,5 +72,18 @@ namespace System.ServiceModel.Security.Tokens
 
             return sb.ToString();
         }
+
+#region Compatibility with classes that inherit from other versions of SecurityTokenParameters
+        protected virtual SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+            throw new NotImplementedException("CreateKeyIdentifierClause is not implemented in SecurityTokenParameters class");
+        }
+
+        protected virtual void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
+        {
+            throw new NotImplementedException("CreateKeyIdentifierClause is not implemented in SecurityTokenParameters class");
+        }
+#endregion
+
     }
 }

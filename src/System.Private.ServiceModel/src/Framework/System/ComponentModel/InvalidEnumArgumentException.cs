@@ -11,7 +11,7 @@ namespace System.ComponentModel
     /// <devdoc>
     ///    <para>The exception that is thrown when using invalid arguments that are enumerators.</para>
     /// </devdoc>
-    public class InvalidEnumArgumentException : ArgumentException
+    internal class InvalidEnumArgumentException : ArgumentException
     {
         /// <devdoc>
         /// <para>Initializes a new instance of the <see cref='System.ComponentModel.InvalidEnumArgumentException'/> class without a message.</para>

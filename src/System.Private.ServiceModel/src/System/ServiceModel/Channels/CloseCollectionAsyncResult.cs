@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace System.ServiceModel
 {
-    internal class CloseCollectionAsyncResult : AsyncResult
+    public class CloseCollectionAsyncResult : AsyncResult
     {
         private bool _completedSynchronously;
         private Exception _exception;

@@ -204,7 +204,7 @@ namespace System.ServiceModel.Description
             return result;
         }
 
-        internal void EnsureInvariants()
+        public void EnsureInvariants()
         {
             if (string.IsNullOrEmpty(this.Name))
             {

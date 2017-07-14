@@ -27,5 +27,50 @@ namespace System.IdentityModel.Selectors
                 _canMatchLocalId = canMatchLocalId;
             }
         }
+
+        public static SecurityTokenResolver CreateDefaultSecurityTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
+        {
+            return (SecurityTokenResolver) new SecurityTokenResolver.SimpleTokenResolver(tokens, canMatchLocalId);
+        }
+
+        protected virtual bool TryResolveTokenCore(SecurityKeyIdentifier keyIdentifier, out SecurityToken token)
+        {
+            token = null;
+            return false;
+        }
+
+        protected virtual bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
+        {
+            token = null;
+            return false;
+        }
+
+        protected virtual bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
+        {
+            key = null;
+            return false;
+        }
+
+        public bool TryResolveToken(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
+        {
+            if (keyIdentifierClause == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+            return this.TryResolveTokenCore(keyIdentifierClause, out token);
+        }
+
+    public bool TryResolveToken(SecurityKeyIdentifier keyIdentifier, out SecurityToken token)
+    {
+      if (keyIdentifier == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+      return this.TryResolveTokenCore(keyIdentifier, out token);
+    }
+
+    public bool TryResolveSecurityKey(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
+    {
+      if (keyIdentifierClause == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+      return this.TryResolveSecurityKeyCore(keyIdentifierClause, out key);
+    }
+
     }
 }

@@ -5,7 +5,7 @@
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class ImmutableCommunicationTimeouts : IDefaultCommunicationTimeouts
+    public class ImmutableCommunicationTimeouts : IDefaultCommunicationTimeouts
     {
         private TimeSpan _close;
         private TimeSpan _open;
@@ -17,7 +17,7 @@ namespace System.ServiceModel.Dispatcher
         {
         }
 
-        internal ImmutableCommunicationTimeouts(IDefaultCommunicationTimeouts timeouts)
+        public ImmutableCommunicationTimeouts(IDefaultCommunicationTimeouts timeouts)
         {
             if (timeouts == null)
             {

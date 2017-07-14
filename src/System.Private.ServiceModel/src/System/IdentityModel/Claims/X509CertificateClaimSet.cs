@@ -28,7 +28,7 @@ namespace System.IdentityModel.Claims
         {
         }
 
-        internal X509CertificateClaimSet(X509Certificate2 certificate, bool clone)
+        public X509CertificateClaimSet(X509Certificate2 certificate, bool clone)
         {
             if (certificate == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");

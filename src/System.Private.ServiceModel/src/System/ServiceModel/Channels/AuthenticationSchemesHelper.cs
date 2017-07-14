@@ -7,7 +7,7 @@ using System.Net;
 
 namespace System.ServiceModel.Channels
 {
-    internal static class AuthenticationSchemesHelper
+    public static class AuthenticationSchemesHelper
     {
         public static bool IsSingleton(this AuthenticationSchemes v)
         {

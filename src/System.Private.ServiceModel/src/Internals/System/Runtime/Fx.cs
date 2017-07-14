@@ -37,7 +37,7 @@ namespace System.Runtime
         [SecurityCritical]
         private static ExceptionHandler s_asynchronousThreadExceptionHandler;
 
-        internal static ExceptionTrace Exception
+        public static ExceptionTrace Exception
         {
             get
             {
@@ -50,7 +50,7 @@ namespace System.Runtime
                 return s_exceptionTrace;
             }
         }
-        internal static EtwDiagnosticTrace Trace
+        public static EtwDiagnosticTrace Trace
         {
             get
             {

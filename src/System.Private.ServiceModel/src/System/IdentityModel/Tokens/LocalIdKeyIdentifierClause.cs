@@ -33,7 +33,7 @@ namespace System.IdentityModel.Tokens
         {
         }
 
-        internal LocalIdKeyIdentifierClause(string localId, byte[] derivationNonce, int derivationLength, Type[] ownerTypes)
+        public LocalIdKeyIdentifierClause(string localId, byte[] derivationNonce, int derivationLength, Type[] ownerTypes)
             : base(null, derivationNonce, derivationLength)
         {
             if (localId == null)

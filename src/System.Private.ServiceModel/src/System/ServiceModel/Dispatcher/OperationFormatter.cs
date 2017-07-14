@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
+    public abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
         private MessageDescription _replyDescription;
         private MessageDescription _requestDescription;
@@ -482,7 +482,7 @@ namespace System.ServiceModel.Dispatcher
             return parameterValue;
         }
 
-        internal static bool IsValidReturnValue(MessagePartDescription returnValue)
+        public static bool IsValidReturnValue(MessagePartDescription returnValue)
         {
             return (returnValue != null) && (returnValue.Type != typeof(void));
         }

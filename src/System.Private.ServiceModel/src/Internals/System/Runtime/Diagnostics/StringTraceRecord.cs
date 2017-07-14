@@ -7,23 +7,23 @@ using System.Xml;
 
 namespace System.Runtime.Diagnostics
 {
-    internal class StringTraceRecord : TraceRecord
+    public class StringTraceRecord : TraceRecord
     {
         private string _elementName;
         private string _content;
 
-        internal StringTraceRecord(string elementName, string content)
+        public StringTraceRecord(string elementName, string content)
         {
             _elementName = elementName;
             _content = content;
         }
 
-        internal override string EventId
+        public override string EventId
         {
             get { return BuildEventId("String"); }
         }
 
-        internal override void WriteTo(XmlWriter writer)
+        public override void WriteTo(XmlWriter writer)
         {
             writer.WriteElementString(_elementName, _content);
         }

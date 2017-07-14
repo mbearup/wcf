@@ -8,7 +8,7 @@ using System.ServiceModel.Diagnostics;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal sealed class MessageOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
+    public sealed class MessageOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
         private static MessageOperationFormatter s_instance;
 

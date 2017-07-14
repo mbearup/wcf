@@ -112,6 +112,13 @@ namespace System.IdentityModel.Claims
 
             return new Claim(ClaimTypes.Dns, dns, Rights.PossessProperty, ClaimComparer.Dns);
         }
+        
+        public static Claim CreateRsaClaim(RSA rsa)
+        {
+          if (rsa == null)
+            throw new ArgumentNullException("rsa");
+          return new Claim(ClaimTypes.Rsa, (object) rsa, Rights.PossessProperty, ClaimComparer.Rsa);
+        }
 
         public static Claim CreateHashClaim(byte[] hash)
         {

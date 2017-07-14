@@ -30,17 +30,17 @@ namespace System.IdentityModel.Tokens
         {
         }
 
-        internal X509SecurityToken(X509Certificate2 certificate, bool clone)
+        public X509SecurityToken(X509Certificate2 certificate, bool clone)
             : this(certificate, SecurityUniqueId.Create().Value, clone)
         {
         }
 
-        internal X509SecurityToken(X509Certificate2 certificate, bool clone, bool disposable)
+        public X509SecurityToken(X509Certificate2 certificate, bool clone, bool disposable)
             : this(certificate, SecurityUniqueId.Create().Value, clone, disposable)
         {
         }
 
-        internal X509SecurityToken(X509Certificate2 certificate, string id, bool clone)
+        public X509SecurityToken(X509Certificate2 certificate, string id, bool clone)
             : this(certificate, id, clone, true)
         {
         }

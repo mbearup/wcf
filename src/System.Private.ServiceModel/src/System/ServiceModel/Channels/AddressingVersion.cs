@@ -68,7 +68,7 @@ namespace System.ServiceModel.Channels
             get { return s_none; }
         }
 
-        internal string Namespace
+        public string Namespace
         {
             get { return _ns; }
         }
@@ -97,22 +97,22 @@ namespace System.ServiceModel.Channels
         }
 
 
-        internal XmlDictionaryString DictionaryNamespace
+        public XmlDictionaryString DictionaryNamespace
         {
             get { return _dictionaryNs; }
         }
 
-        internal string Anonymous
+        public string Anonymous
         {
             get { return _anonymous; }
         }
 
-        internal XmlDictionaryString DictionaryAnonymous
+        public XmlDictionaryString DictionaryAnonymous
         {
             get { return _dictionaryAnonymous; }
         }
 
-        internal Uri AnonymousUri
+        public Uri AnonymousUri
         {
             get { return _anonymousUri; }
         }
@@ -122,17 +122,17 @@ namespace System.ServiceModel.Channels
             get { return _noneUri; }
         }
 
-        internal string FaultAction   // the action for addressing faults
+        public string FaultAction   // the action for addressing faults
         {
             get { return _faultAction; }
         }
 
-        internal string DefaultFaultAction  // a default string that can be used for non-addressing faults
+        public string DefaultFaultAction  // a default string that can be used for non-addressing faults
         {
             get { return _defaultFaultAction; }
         }
 
-        internal MessagePartSpecification SignedMessageParts
+        public MessagePartSpecification SignedMessageParts
         {
             get
             {

@@ -23,6 +23,10 @@ namespace System.ServiceModel.Description
         {
         }
 
+#region FromWCF
+        public bool SupportInteractive { get; set; }
+#endregion
+
         protected ClientCredentials(ClientCredentials other)
         {
             if (other == null)

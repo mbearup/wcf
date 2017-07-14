@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace System.Runtime
 {
-    internal class IOThreadScheduler
+    public class IOThreadScheduler
     {
         // Do not increase the maximum capacity above 32k!  It must be a power of two, 0x8000 or less, in order to
         // work with the strategy for 'headTail'.

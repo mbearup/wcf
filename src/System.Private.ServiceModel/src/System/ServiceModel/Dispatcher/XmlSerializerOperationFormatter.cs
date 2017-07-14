@@ -21,7 +21,7 @@ using System.Xml.Schema;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class XmlSerializerOperationFormatter : OperationFormatter
+    public class XmlSerializerOperationFormatter : OperationFormatter
     {
         private const string soap11Encoding = "http://schemas.xmlsoap.org/soap/encoding/";
         private const string soap12Encoding = "http://www.w3.org/2003/05/soap-encoding";
@@ -407,7 +407,7 @@ namespace System.ServiceModel.Dispatcher
             }
         }
 
-        internal abstract class MessageInfo
+        public abstract class MessageInfo
         {
             internal abstract XmlSerializer BodySerializer { get; }
             internal abstract XmlSerializer HeaderSerializer { get; }

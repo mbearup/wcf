@@ -8,7 +8,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Channels
 {
-    internal abstract class AddressingHeader : DictionaryHeader, IMessageHeaderWithSharedNamespace
+    public abstract class AddressingHeader : DictionaryHeader, IMessageHeaderWithSharedNamespace
     {
         private AddressingVersion _version;
 
@@ -38,7 +38,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class ActionHeader : AddressingHeader
+    public class ActionHeader : AddressingHeader
     {
         private string _action;
         private const bool mustUnderstandValue = true;

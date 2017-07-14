@@ -10,7 +10,7 @@ using System.Text;
 
 namespace System.ServiceModel.Channels
 {
-    internal struct ChannelRequirements
+    public struct ChannelRequirements
     {
         public bool usesInput;
         public bool usesReply;

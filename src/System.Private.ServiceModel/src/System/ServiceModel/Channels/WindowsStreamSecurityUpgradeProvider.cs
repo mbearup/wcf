@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace System.ServiceModel.Channels
 {
-    internal class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
+    public class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
     {
         private bool _extractGroupsForWindowsAccounts;
         private EndpointIdentity _identity;

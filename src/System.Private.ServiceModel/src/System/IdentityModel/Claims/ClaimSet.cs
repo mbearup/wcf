@@ -51,7 +51,7 @@ namespace System.IdentityModel.Claims
         }
 
 
-        internal static ClaimSet Anonymous
+        public static ClaimSet Anonymous
         {
             get
             {
@@ -62,7 +62,7 @@ namespace System.IdentityModel.Claims
             }
         }
 
-        static internal bool SupportedRight(string right)
+        public static bool SupportedRight(string right)
         {
             return right == null ||
                 Rights.Identity.Equals(right) ||

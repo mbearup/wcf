@@ -14,7 +14,7 @@ using System.ServiceModel;
 
 namespace System.Runtime
 {
-    internal class ExceptionTrace
+    public class ExceptionTrace
     {
         private const ushort FailFastEventLogCategory = 6;
 
@@ -208,6 +208,11 @@ namespace System.Runtime
         public void TraceUnhandledException(Exception exception)
         {
             TraceCore.UnhandledException(_diagnosticTrace, exception != null ? exception.ToString() : string.Empty, exception);
+        }
+
+        public void TraceHandledException(Exception exception)
+        {
+            TraceCore.HandledException(_diagnosticTrace, exception != null ? exception.ToString() : string.Empty, exception);
         }
 
         public void TraceEtwException(Exception exception, EventLevel eventLevel)

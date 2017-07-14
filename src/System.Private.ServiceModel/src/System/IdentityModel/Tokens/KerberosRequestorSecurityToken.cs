@@ -20,7 +20,7 @@ namespace System.IdentityModel.Tokens
         private DateTime _effectiveTime;
         private DateTime _expirationTime;
 
-        internal KerberosRequestorSecurityToken(string servicePrincipalName, TokenImpersonationLevel tokenImpersonationLevel, NetworkCredential networkCredential, string id)
+        public KerberosRequestorSecurityToken(string servicePrincipalName, TokenImpersonationLevel tokenImpersonationLevel, NetworkCredential networkCredential, string id)
         {
             if (servicePrincipalName == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("servicePrincipalName");

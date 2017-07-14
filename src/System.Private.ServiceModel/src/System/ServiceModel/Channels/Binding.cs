@@ -210,7 +210,7 @@ namespace System.ServiceModel.Channels
             return context.GetInnerProperty<T>();
         }
 
-        private void EnsureInvariants()
+        public void EnsureInvariants()
         {
             EnsureInvariants(null);
         }

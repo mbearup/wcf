@@ -172,7 +172,7 @@ namespace System.ServiceModel.Channels
             return _messageVersion.Envelope == version;
         }
 
-        internal override bool IsMatch(BindingElement b)
+        public override bool IsMatch(BindingElement b)
         {
             if (!base.IsMatch(b))
                 return false;

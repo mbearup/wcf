@@ -16,13 +16,16 @@ using System.ServiceModel;
 
 namespace System.Runtime.Diagnostics
 {
-    internal sealed class EtwDiagnosticTrace : DiagnosticTraceBase
+    public sealed class EtwDiagnosticTrace : DiagnosticTraceBase
     {
         private const int XmlBracketsLength = 5; // "<></>".Length;
         private const int MaxExceptionStringLength = 28 * 1024;
         private const int MaxExceptionDepth = 64;
         private static Guid s_defaultEtwProviderId = Guid.Empty;
-
+#region From WCF
+        [SecurityCritical]
+        private EtwProvider etwProvider;
+#endregion
         //Compiler will add all static initializers into the static constructor.  Adding an explicit one to mark SecurityCritical.
         [Fx.Tag.SecurityNote(Critical = "setting critical field defaultEtwProviderId")]
         [SecurityCritical]
@@ -61,7 +64,30 @@ namespace System.Runtime.Diagnostics
             }
         }
 
-
+#region From WCF
+        public EtwProvider EtwProvider
+        {
+          [SecurityCritical] get
+          {
+            return this.etwProvider;
+          }
+        }
+        
+        public override bool ShouldTrace(TraceEventLevel level)
+        {
+          if (!base.ShouldTrace(level))
+            return this.ShouldTraceToEtw(level);
+          return true;
+        }
+        
+        [SecuritySafeCritical]
+        public bool ShouldTraceToEtw(TraceEventLevel level)
+        {
+          if (this.EtwProvider != null)
+            return this.EtwProvider.IsEnabled((byte) level, 0L);
+          return false;
+        }
+#endregion
         public bool IsEtwProviderEnabled
         {
             [Fx.Tag.SecurityNote(Critical = "Access critical etwProvider field",

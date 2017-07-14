@@ -12,7 +12,7 @@ namespace System.Runtime
 {
     // AsyncResult starts acquired; Complete releases.
     [Fx.Tag.SynchronizationPrimitive(Fx.Tag.BlocksUsing.ManualResetEvent, SupportsAsync = true, ReleaseMethod = "Complete")]
-    internal abstract class AsyncResult : IAsyncResult
+    public abstract class AsyncResult : IAsyncResult
     {
         private static AsyncCallback s_asyncCompletionWrapperCallback;
         private AsyncCallback _callback;

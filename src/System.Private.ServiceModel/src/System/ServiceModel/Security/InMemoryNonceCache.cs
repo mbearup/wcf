@@ -16,7 +16,7 @@ namespace System.ServiceModel.Security
     /// The hashcode is computed based on the nonce byte array.
     /// The nonce cache periodically purges stale nonce entries.
     /// </summary>
-    internal sealed class InMemoryNonceCache : NonceCache
+    public sealed class InMemoryNonceCache : NonceCache
     {
         private NonceCacheImpl _cacheImpl;
 

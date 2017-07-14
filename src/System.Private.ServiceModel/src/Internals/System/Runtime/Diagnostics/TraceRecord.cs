@@ -12,9 +12,9 @@ namespace System.Runtime.Diagnostics
         protected const string EventIdBase = "http://schemas.microsoft.com/2006/08/ServiceModel/";
         protected const string NamespaceSuffix = "TraceRecord";
 
-        internal virtual string EventId { get { return BuildEventId("Empty"); } }
+        public virtual string EventId { get { return BuildEventId("Empty"); } }
 
-        internal virtual void WriteTo(XmlWriter writer)
+        public virtual void WriteTo(XmlWriter writer)
         {
         }
 

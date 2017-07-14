@@ -7,7 +7,7 @@ using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal interface IListenerBinder
+    public interface IListenerBinder
     {
         IChannelListener Listener { get; }
         MessageVersion MessageVersion { get; }
