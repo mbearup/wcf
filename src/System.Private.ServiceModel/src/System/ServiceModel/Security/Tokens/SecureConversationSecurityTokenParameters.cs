@@ -31,6 +31,14 @@ namespace System.ServiceModel.Security.Tokens
                 _issuerBindingContext = other._issuerBindingContext.Clone();
         }
 
+        public bool RequireCancellation
+        {
+            get
+            {
+                return _requireCancellation;
+            }
+        }
+
         public SecureConversationSecurityTokenParameters()
         {
             // empty

@@ -27,6 +27,18 @@ namespace System.ServiceModel
             _realm = DefaultRealm;
         }
 
+#region FromWCF
+        public bool ShouldSerializeProxyCredentialType()
+        {
+            return (uint) this._proxyCredentialType > 0U;
+        }
+
+        public bool ShouldSerializeRealm()
+        {
+            return this._realm != "";
+        }
+#endregion
+
         public HttpClientCredentialType ClientCredentialType
         {
             get { return _clientCredentialType; }
@@ -62,7 +74,7 @@ namespace System.ServiceModel
         }
 
 
-        internal void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
+        public void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
         {
             DisableAuthentication(https);
             https.RequireClientCertificate = false;
@@ -94,7 +106,7 @@ namespace System.ServiceModel
             return http.AuthenticationScheme == AuthenticationSchemes.Anonymous && http.Realm == DefaultRealm;
         }
 
-        internal void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
+        public void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
         {
             ConfigureAuthentication(https);
             https.RequireClientCertificate = (_clientCredentialType == HttpClientCredentialType.Certificate);

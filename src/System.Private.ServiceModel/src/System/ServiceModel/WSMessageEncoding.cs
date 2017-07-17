@@ -11,9 +11,9 @@ namespace System.ServiceModel
         Mtom = 1
     }
 
-    internal static class WSMessageEncodingHelper
+    public static class WSMessageEncodingHelper
     {
-        internal static bool IsDefined(WSMessageEncoding value)
+        public static bool IsDefined(WSMessageEncoding value)
         {
             return value == WSMessageEncoding.Text;
         }
