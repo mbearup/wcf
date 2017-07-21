@@ -68,7 +68,7 @@ namespace System.ServiceModel.Channels
 
         // In order to generate sp:HttpsToken with the right policy.
         // See CSD 3105 for detail.
-        internal MessageSecurityVersion MessageSecurityVersion
+        public MessageSecurityVersion MessageSecurityVersion
         {
             get
             {

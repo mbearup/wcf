@@ -9,6 +9,7 @@ using System.IdentityModel.Policy;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
 using System.IO;
+using System.Runtime;
 using System.Runtime.Serialization;
 using System.ServiceModel.Channels;
 using System.Xml;
@@ -18,6 +19,9 @@ namespace System.ServiceModel.Security
 {
     internal class RequestSecurityTokenResponse : BodyWriter
     {
+
+        private static int minSaneKeySizeInBits = 64;
+        private static int maxSaneKeySizeInBits = 131072;
         private SecurityStandardsManager _standardsManager;
         private string _context;
         private int _keySize;
@@ -41,6 +45,8 @@ namespace System.ServiceModel.Security
         private Type _appliesToType;
         private Object _thisLock = new Object();
         private System.IdentityModel.XmlBuffer _issuedTokenBuffer;
+        private BinaryNegotiation _negotiationData;
+        private byte[] _authenticator;
 
         public RequestSecurityTokenResponse()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -227,6 +233,47 @@ namespace System.ServiceModel.Security
             {
                 return _expirationTime;
             }
+        }
+
+        public static byte[] ComputeCombinedKey(byte[] requestorEntropy, byte[] issuerEntropy, int keySizeInBits)
+        {
+          if (requestorEntropy == null)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("requestorEntropy");
+          if (issuerEntropy == null)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuerEntropy");
+          if (keySizeInBits < RequestSecurityTokenResponse.minSaneKeySizeInBits || keySizeInBits > RequestSecurityTokenResponse.maxSaneKeySizeInBits)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new SecurityNegotiationException(SR.GetString("InvalidKeySizeSpecifiedInNegotiation", (object) keySizeInBits, (object) RequestSecurityTokenResponse.minSaneKeySizeInBits, (object) RequestSecurityTokenResponse.maxSaneKeySizeInBits)));
+#if FEATURE_CORECLR
+          throw new NotImplementedException("Psha1DerivedKeyGenerator is not supported in .NET Core");
+#else
+          return new Psha1DerivedKeyGenerator(requestorEntropy).GenerateDerivedKey(new byte[0], issuerEntropy, keySizeInBits, 0);
+#endif
+        }
+
+        internal BinaryNegotiation GetBinaryNegotiation()
+        {
+          if (this._isReceiver)
+            return this._standardsManager.TrustDriver.GetBinaryNegotiation(this);
+          return this._negotiationData;
+        }
+
+        internal byte[] GetAuthenticator()
+        {
+          if (this._isReceiver)
+            return this._standardsManager.TrustDriver.GetAuthenticator(this);
+          if (this._authenticator == null)
+            return (byte[]) null;
+          byte[] numArray = Fx.AllocateByteArray(this._authenticator.Length);
+          Buffer.BlockCopy((Array) this._authenticator, 0, (Array) numArray, 0, this._authenticator.Length);
+          return numArray;
+        }
+
+        internal System.IdentityModel.XmlBuffer IssuedTokenBuffer
+        {
+          get
+          {
+            return this._issuedTokenBuffer;
+          }
         }
 
         public bool ComputeKey
@@ -419,6 +466,11 @@ namespace System.ServiceModel.Security
             }
         }
 
+
+        public SecurityToken GetIssuerEntropy()
+        {
+          return this.GetIssuerEntropy((SecurityTokenResolver) null);
+        }
 
         internal SecurityToken GetIssuerEntropy(SecurityTokenResolver resolver)
         {

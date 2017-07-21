@@ -18,7 +18,7 @@ namespace System.ServiceModel
         private HttpClientCredentialType _clientCredentialType;
         private HttpProxyCredentialType _proxyCredentialType;
         private string _realm;
-
+        private ExtendedProtectionPolicy extendedProtectionPolicy = null;
 
         public HttpTransportSecurity()
         {
@@ -37,6 +37,22 @@ namespace System.ServiceModel
         {
             return this._realm != "";
         }
+
+    public ExtendedProtectionPolicy ExtendedProtectionPolicy
+    {
+      get
+      {
+        return this.extendedProtectionPolicy;
+      }
+      set
+      {
+        if (value == null)
+          throw new ArgumentNullException("value");
+        // if (value.PolicyEnforcement == PolicyEnforcement.Always && !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+        //   throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new PlatformNotSupportedException(SR.GetString("ExtendedProtectionNotSupported")));
+        this.extendedProtectionPolicy = value;
+      }
+    }
 #endregion
 
         public HttpClientCredentialType ClientCredentialType
@@ -112,7 +128,7 @@ namespace System.ServiceModel
             https.RequireClientCertificate = (_clientCredentialType == HttpClientCredentialType.Certificate);
         }
 
-        internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
+        public static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
         {
             ConfigureAuthentication(https, transportSecurity);
             if (https.RequireClientCertificate)

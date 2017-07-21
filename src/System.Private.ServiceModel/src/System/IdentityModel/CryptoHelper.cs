@@ -9,6 +9,8 @@ namespace System.IdentityModel
 {
     internal static class CryptoHelper
     {
+        private static readonly RandomNumberGenerator random = (RandomNumberGenerator) new RNGCryptoServiceProvider();
+
         internal static bool IsSymmetricAlgorithm(string algorithm)
         {
             throw ExceptionHelper.PlatformNotSupported();
@@ -62,6 +64,11 @@ namespace System.IdentityModel
         internal static bool IsSymmetricSupportedAlgorithm(string algorithm, int keySize)
         {
             throw ExceptionHelper.PlatformNotSupported();
+        }
+
+        internal static void FillRandomBytes(byte[] buffer)
+        {
+          CryptoHelper.random.GetBytes(buffer);
         }
     }
 }

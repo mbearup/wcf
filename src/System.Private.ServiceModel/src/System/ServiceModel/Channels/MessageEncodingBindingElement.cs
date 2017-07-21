@@ -24,7 +24,7 @@ namespace System.ServiceModel.Channels
             get { return true; }
         }
 
-        internal IChannelFactory<TChannel> InternalBuildChannelFactory<TChannel>(BindingContext context)
+        public IChannelFactory<TChannel> InternalBuildChannelFactory<TChannel>(BindingContext context)
         {
             if (context == null)
             {
@@ -35,7 +35,7 @@ namespace System.ServiceModel.Channels
             return context.BuildInnerChannelFactory<TChannel>();
         }
 
-        internal bool InternalCanBuildChannelFactory<TChannel>(BindingContext context)
+        public bool InternalCanBuildChannelFactory<TChannel>(BindingContext context)
         {
             if (context == null)
             {

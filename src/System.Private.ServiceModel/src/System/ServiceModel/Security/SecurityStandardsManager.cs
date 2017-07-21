@@ -23,6 +23,11 @@ namespace System.ServiceModel.Security
         private static SecurityStandardsManager s_instance;
         private readonly MessageSecurityVersion _messageSecurityVersion;
         private readonly TrustDriver _trustDriver;
+#if FEATURE_CORECLR
+        private readonly SecurityTokenSerializer tokenSerializer;
+        private readonly MessageSecurityVersion messageSecurityVersion;
+        private WSSecurityTokenSerializer wsSecurityTokenSerializer;
+#endif
 #pragma warning restore 0649
 
 
@@ -51,6 +56,45 @@ namespace System.ServiceModel.Security
                 return s_instance;
             }
         }
+
+#if FEATURE_CORECLR
+
+        private WSSecurityTokenSerializer WSSecurityTokenSerializer
+        {
+          get
+          {
+            if (this.wsSecurityTokenSerializer == null)
+              this.wsSecurityTokenSerializer = this.tokenSerializer as WSSecurityTokenSerializer ?? new WSSecurityTokenSerializer(this.SecurityVersion);
+            return this.wsSecurityTokenSerializer;
+          }
+        }
+
+        internal SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXml(XmlElement element, SecurityTokenReferenceStyle tokenReferenceStyle)
+        {
+          return this.WSSecurityTokenSerializer.CreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle);
+        }
+
+        internal bool TryCreateKeyIdentifierClauseFromTokenXml(XmlElement element, SecurityTokenReferenceStyle tokenReferenceStyle, out SecurityKeyIdentifierClause securityKeyIdentifierClause)
+        {
+          return this.WSSecurityTokenSerializer.TryCreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle, out securityKeyIdentifierClause);
+        }
+
+        internal SecurityTokenSerializer SecurityTokenSerializer
+        {
+          get
+          {
+            return this.tokenSerializer;
+          }
+        }
+
+        internal TrustVersion TrustVersion
+        {
+          get
+          {
+            return this.messageSecurityVersion.TrustVersion;
+          }
+        }
+#endif
 
         public SecurityVersion SecurityVersion
         {

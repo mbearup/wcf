@@ -846,7 +846,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal void ThrowPending()
+        public void ThrowPending()
         {
         }
 

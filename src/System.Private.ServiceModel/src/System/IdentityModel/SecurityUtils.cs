@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
+using System.IdentityModel.Tokens;
 using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
@@ -27,6 +28,11 @@ namespace System.IdentityModel
         public const string AuthTypeAnonymous = "";
         public const string AuthTypeCertMap = "SSL/PCT"; // mapped from a cert
         public const string AuthTypeBasic = "Basic"; //LogonUser
+
+        internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
+        {
+          return new List<SecurityKey>(1) { (SecurityKey) new InMemorySymmetricSecurityKey(key) }.AsReadOnly();
+        }
 
         internal static IIdentity AnonymousIdentity
         {

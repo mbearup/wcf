@@ -126,7 +126,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class ChainedCloseAsyncResult : ChainedAsyncResult
+    public class ChainedCloseAsyncResult : ChainedAsyncResult
     {
         private IList<ICommunicationObject> _collection;
 
@@ -161,7 +161,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class ChainedOpenAsyncResult : ChainedAsyncResult
+    public class ChainedOpenAsyncResult : ChainedAsyncResult
     {
         private IList<ICommunicationObject> _collection;
 
