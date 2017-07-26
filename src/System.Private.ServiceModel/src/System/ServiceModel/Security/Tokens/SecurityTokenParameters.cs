@@ -50,6 +50,20 @@ namespace System.ServiceModel.Security.Tokens
         internal protected abstract bool SupportsClientAuthentication { get; }
         internal protected abstract bool SupportsServerAuthentication { get; }
         internal protected abstract bool SupportsClientWindowsIdentity { get; }
+#if FEATURE_CORECLR
+        public virtual SecurityKeyIdentifierClause CreateGenericXmlTokenKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+            GenericXmlSecurityToken xmlSecurityToken = token as GenericXmlSecurityToken;
+            if (xmlSecurityToken != null)
+            {
+              if (referenceStyle == SecurityTokenReferenceStyle.Internal && xmlSecurityToken.InternalTokenReference != null)
+                  return xmlSecurityToken.InternalTokenReference;
+              if (referenceStyle == SecurityTokenReferenceStyle.External && xmlSecurityToken.ExternalTokenReference != null)
+                  return xmlSecurityToken.ExternalTokenReference;
+            }
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new MessageSecurityException("UnableToCreateTokenReference"));
+        }
+#endif
 
         public SecurityTokenParameters Clone()
         {

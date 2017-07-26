@@ -25,6 +25,7 @@ namespace System.ServiceModel
             _clientCredentialType = DefaultClientCredentialType;
             _proxyCredentialType = DefaultProxyCredentialType;
             _realm = DefaultRealm;
+            extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
 
 #region FromWCF
@@ -100,18 +101,27 @@ namespace System.ServiceModel
         {
             http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(_clientCredentialType);
             http.Realm = this.Realm;
+#region FromWCF
+            http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;
+#endregion
         }
 
         private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
             transportSecurity._clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
             transportSecurity.Realm = http.Realm;
+#region FromWCF
+            transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
+#endregion
         }
 
         private void DisableAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = AuthenticationSchemes.Anonymous;
             http.Realm = DefaultRealm;
+#region FromWCF
+            http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;
+#endregion
             //ExtendedProtectionPolicy is always copied - even for security mode None, Message and TransportWithMessageCredential,
             //because the settings for ExtendedProtectionPolicy are always below the <security><transport> element
             //http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;

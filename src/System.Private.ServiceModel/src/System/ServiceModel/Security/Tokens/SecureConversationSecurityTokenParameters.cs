@@ -18,6 +18,7 @@ namespace System.ServiceModel.Security.Tokens
         private bool _requireCancellation;
         private bool _canRenewSession = defaultCanRenewSession;
         private BindingContext _issuerBindingContext;
+        private ChannelProtectionRequirements _protectionRequirements;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
@@ -44,9 +45,11 @@ namespace System.ServiceModel.Security.Tokens
             // empty
         }
 
-        public SecureConversationSecurityTokenParameters(SecurityBindingElement bootstrapSecurityBindingElement)
+        public SecureConversationSecurityTokenParameters(SecurityBindingElement bootstrapSecurityBindingElement, bool requireCancellation = true, ChannelProtectionRequirements protectionRequirements = null)
         {
             _bootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
+            _requireCancellation = requireCancellation;
+            _protectionRequirements = protectionRequirements;
         }
 
         internal protected override bool HasAsymmetricKey { get { return false; } }

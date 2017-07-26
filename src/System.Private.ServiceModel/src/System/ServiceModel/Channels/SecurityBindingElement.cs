@@ -24,8 +24,10 @@ namespace System.ServiceModel.Channels
 
         private SupportingTokenParameters _endpointSupportingTokenParameters;
         private bool _includeTimestamp;
+        private bool supportsExtendedProtectionPolicy;
 
         private LocalClientSecuritySettings _localClientSettings;
+        private LocalServiceSecuritySettings _localServiceSettings;
 
         private MessageSecurityVersion _messageSecurityVersion;
         private SecurityHeaderLayout _securityHeaderLayout;
@@ -41,6 +43,7 @@ namespace System.ServiceModel.Channels
             _localClientSettings = new LocalClientSecuritySettings();
             _endpointSupportingTokenParameters = new SupportingTokenParameters();
             _securityHeaderLayout = SecurityProtocolFactory.defaultSecurityHeaderLayout;
+            _localServiceSettings = new LocalServiceSecuritySettings();
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -56,6 +59,7 @@ namespace System.ServiceModel.Channels
             _localClientSettings = elementToBeCloned._localClientSettings.Clone();
             _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
             _readerQuotas = elementToBeCloned._readerQuotas;
+            _localServiceSettings = elementToBeCloned._localServiceSettings.Clone();
         }
 
 #region FromWCF
@@ -72,6 +76,26 @@ namespace System.ServiceModel.Channels
         if (value == null)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("value"));
         this.defaultAlgorithmSuite = value;
+      }
+    }
+
+    internal bool SupportsExtendedProtectionPolicy
+    {
+      get
+      {
+        return this.supportsExtendedProtectionPolicy;
+      }
+      set
+      {
+        this.supportsExtendedProtectionPolicy = value;
+      }
+    }
+
+    public LocalServiceSecuritySettings LocalServiceSettings
+    {
+      get
+      {
+        return this._localServiceSettings;
       }
     }
 
@@ -139,11 +163,7 @@ namespace System.ServiceModel.Channels
         securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.Default;
       }
       securityBindingElement.LocalClientSettings.DetectReplays = false;
-#if FEATURE_CORECLR
-      // LocalServiceSettings is not supported in .NET Core
-#else
       securityBindingElement.LocalServiceSettings.DetectReplays = false;
-#endif
       securityBindingElement.IncludeTimestamp = true;
       return securityBindingElement;
     }
@@ -260,8 +280,7 @@ namespace System.ServiceModel.Channels
 
     public static SymmetricSecurityBindingElement CreateSspiNegotiationBindingElement(bool requireCancellation)
     {
-      throw new NotImplementedException("SspiSecurityTokenParameters not supported in .NET Core");
-      // return new SymmetricSecurityBindingElement((SecurityTokenParameters) new SspiSecurityTokenParameters(requireCancellation));
+      return new SymmetricSecurityBindingElement((SecurityTokenParameters) new SspiSecurityTokenParameters(requireCancellation));
     }
 
     public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement()
@@ -271,8 +290,7 @@ namespace System.ServiceModel.Channels
 
     public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
     {
-      throw new NotImplementedException("SspiSecurityTokenParameters not supported in .NET Core");
-      /*TransportSecurityBindingElement securityBindingElement = new TransportSecurityBindingElement();
+      TransportSecurityBindingElement securityBindingElement = new TransportSecurityBindingElement();
       SspiSecurityTokenParameters securityTokenParameters = new SspiSecurityTokenParameters(requireCancellation);
       securityTokenParameters.RequireDerivedKeys = false;
       securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) securityTokenParameters);
@@ -280,7 +298,7 @@ namespace System.ServiceModel.Channels
       securityBindingElement.LocalClientSettings.DetectReplays = false;
       securityBindingElement.LocalServiceSettings.DetectReplays = false;
       securityBindingElement.SupportsExtendedProtectionPolicy = true;
-      return securityBindingElement;*/
+      return securityBindingElement;
     }
 
     public static SymmetricSecurityBindingElement CreateUserNameForCertificateBindingElement()
@@ -816,9 +834,28 @@ namespace System.ServiceModel.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool option = true)
+        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool option = true, ChannelProtectionRequirements bootstrapProtectionRequirements = null)
         {
-            throw ExceptionHelper.PlatformNotSupported("SecurityBindingElement.CreateSecureConversatationBindingElement is not supported.");
+            if (bootstrapSecurity == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bootstrapBinding");
+            SecurityBindingElement securityBindingElement1;
+            if (bootstrapSecurity is TransportSecurityBindingElement)
+            {
+                TransportSecurityBindingElement securityBindingElement2 = new TransportSecurityBindingElement();
+                SecureConversationSecurityTokenParameters securityTokenParameters = new SecureConversationSecurityTokenParameters(bootstrapSecurity, option, bootstrapProtectionRequirements);
+                securityTokenParameters.RequireDerivedKeys = false;
+                securityBindingElement2.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) securityTokenParameters);
+                securityBindingElement2.LocalClientSettings.DetectReplays = false;
+                securityBindingElement2.LocalServiceSettings.DetectReplays = false;
+                securityBindingElement2.IncludeTimestamp = true;
+                securityBindingElement1 = (SecurityBindingElement) securityBindingElement2;
+            }
+            else
+            securityBindingElement1 = (SecurityBindingElement) new SymmetricSecurityBindingElement((SecurityTokenParameters) new SecureConversationSecurityTokenParameters(bootstrapSecurity, option, bootstrapProtectionRequirements))
+            {
+                RequireSignatureConfirmation = false
+            };
+            return securityBindingElement1;
         }
 
         public override string ToString()

@@ -28,6 +28,16 @@ namespace System.IdentityModel.Selectors
             }
         }
 
+        public SecurityToken ResolveToken(SecurityKeyIdentifier keyIdentifier)
+        {
+            if (keyIdentifier == null)
+              throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+            SecurityToken token;
+            if (!this.TryResolveTokenCore(keyIdentifier, out token))
+               throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning((Exception) new InvalidOperationException(SR.GetString("UnableToResolveTokenReference", new object[1]{ (object) keyIdentifier })));
+            return token;
+    }
+
         public static SecurityTokenResolver CreateDefaultSecurityTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
         {
             return (SecurityTokenResolver) new SecurityTokenResolver.SimpleTokenResolver(tokens, canMatchLocalId);
