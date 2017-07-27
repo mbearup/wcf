@@ -24,9 +24,18 @@ namespace System.ServiceModel.Security
         private readonly MessageSecurityVersion _messageSecurityVersion;
         private readonly TrustDriver _trustDriver;
 #if FEATURE_CORECLR
-        private readonly SecurityTokenSerializer tokenSerializer;
-        private readonly MessageSecurityVersion messageSecurityVersion;
+        private readonly SecureConversationDriver _secureConversationDriver;
+        private readonly SecurityTokenSerializer _tokenSerializer;
         private WSSecurityTokenSerializer wsSecurityTokenSerializer;
+
+        internal SecureConversationDriver SecureConversationDriver
+        {
+          get
+          {
+            return this._secureConversationDriver;
+          }
+        }
+
 #endif
 #pragma warning restore 0649
 
@@ -44,7 +53,13 @@ namespace System.ServiceModel.Security
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
+#if FEATURE_CORECLR
             throw ExceptionHelper.PlatformNotSupported();
+#else
+            _tokenSerializer = tokenSerializer;
+            _messageSecurityVersion = messageSecurityVersion;
+            this._secureConversationDriver = messageSecurityVersion.SecureConversationVersion != SecureConversationVersion.WSSecureConversation13 ? (SecureConversationDriver) new WSSecureConversationFeb2005.DriverFeb2005() : (SecureConversationDriver) new WSSecureConversationDec2005.DriverDec2005();
+#endif
         }
 
         public static SecurityStandardsManager DefaultInstance
@@ -64,7 +79,7 @@ namespace System.ServiceModel.Security
           get
           {
             if (this.wsSecurityTokenSerializer == null)
-              this.wsSecurityTokenSerializer = this.tokenSerializer as WSSecurityTokenSerializer ?? new WSSecurityTokenSerializer(this.SecurityVersion);
+              this.wsSecurityTokenSerializer = this._tokenSerializer as WSSecurityTokenSerializer ?? new WSSecurityTokenSerializer(this.SecurityVersion);
             return this.wsSecurityTokenSerializer;
           }
         }
@@ -83,7 +98,7 @@ namespace System.ServiceModel.Security
         {
           get
           {
-            return this.tokenSerializer;
+            return this._tokenSerializer;
           }
         }
 
@@ -91,7 +106,7 @@ namespace System.ServiceModel.Security
         {
           get
           {
-            return this.messageSecurityVersion.TrustVersion;
+            return this._messageSecurityVersion.TrustVersion;
           }
         }
 #endif

@@ -32,6 +32,21 @@ namespace System.ServiceModel.Security.Tokens
                 _issuerBindingContext = other._issuerBindingContext.Clone();
         }
 
+#region fromwcf
+    public bool CanRenewSession
+    {
+      get
+      {
+        return this._canRenewSession;
+      }
+      set
+      {
+        this._canRenewSession = value;
+      }
+    }
+#endregion
+
+
         public bool RequireCancellation
         {
             get

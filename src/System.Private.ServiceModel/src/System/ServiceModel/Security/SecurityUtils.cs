@@ -238,6 +238,92 @@ namespace System.ServiceModel.Security
             }
         }
 
+#region Fromwcf
+
+    internal static IAsyncResult BeginCloseTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("CloseCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      return (IAsyncResult) new SecurityUtils.CloseCommunicationObjectAsyncResult((object) tokenProvider, timeout, callback, state);
+#endif
+    }
+
+    internal static void EndCloseTokenProviderIfRequired(IAsyncResult result)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("CloseCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      SecurityUtils.CloseCommunicationObjectAsyncResult.End(result);
+#endif
+    }
+
+    internal static IAsyncResult BeginOpenTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OpenCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      return (IAsyncResult) new SecurityUtils.OpenCommunicationObjectAsyncResult((object) tokenProvider, timeout, callback, state);
+#endif
+    }
+
+    internal static void EndOpenTokenProviderIfRequired(IAsyncResult result)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OpenCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      SecurityUtils.OpenCommunicationObjectAsyncResult.End(result);
+#endif
+    }
+
+    internal static bool IsChannelBindingDisabled
+    {
+      get
+      {
+#if FEATURE_CORECLR
+        throw new NotImplementedException("Registry is not supported in .NET Core");
+#else
+        return (uint) (SecurityUtils.GetSuppressChannelBindingValue() & 1) > 0U;
+#endif
+      }
+    }
+
+    internal static bool IsSecurityBindingSuitableForChannelBinding(TransportSecurityBindingElement securityBindingElement)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("SupportingTokenParameters.Signed is not supported in .NET Core");
+#else
+      return securityBindingElement != null && (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Endorsing) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Signed) || (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEndorsing)));
+#endif
+    }
+
+    internal static bool IsSecurityFault(MessageFault fault, SecurityStandardsManager standardsManager)
+    {
+      if (fault.Code.IsSenderFault)
+      {
+        FaultCode subCode = fault.Code.SubCode;
+        if (subCode != null)
+        {
+          if (!(subCode.Namespace == standardsManager.SecurityVersion.HeaderNamespace.Value) && !(subCode.Namespace == standardsManager.SecureConversationDriver.Namespace.Value) && !(subCode.Namespace == standardsManager.TrustDriver.Namespace.Value))
+            return subCode.Namespace == "http://schemas.microsoft.com/ws/2006/05/security";
+          return true;
+        }
+      }
+      return false;
+    }
+
+    internal static Exception CreateSecurityFaultException(Message unverifiedMessage)
+    {
+      return SecurityUtils.CreateSecurityFaultException(MessageFault.CreateFault(unverifiedMessage, 16384));
+    }
+
+    internal static Exception CreateSecurityFaultException(MessageFault fault)
+    {
+      return (Exception) new MessageSecurityException(SR.GetString("UnsecuredMessageFaultReceived"), (Exception) FaultException.CreateFault(fault, new System.Type[2]{ typeof (string), typeof (object) }));
+    }
+
+#endregion
+
         internal static IIdentity AnonymousIdentity
         {
             get

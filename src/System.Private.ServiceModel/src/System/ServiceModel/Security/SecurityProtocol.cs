@@ -55,6 +55,44 @@ namespace System.ServiceModel.Security
         public void OnOpened() { throw ExceptionHelper.PlatformNotSupported(); }
         public void OnOpening() { throw ExceptionHelper.PlatformNotSupported(); }
 
+        public abstract void SecureOutgoingMessage(ref Message message, TimeSpan timeout);
+
+        public virtual SecurityProtocolCorrelationState SecureOutgoingMessage(ref Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState)
+        {
+            this.SecureOutgoingMessage(ref message, timeout);
+            return (SecurityProtocolCorrelationState) null;
+        }
+
+        public abstract void VerifyIncomingMessage(ref Message message, TimeSpan timeout);
+
+        public virtual SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
+        {
+            this.VerifyIncomingMessage(ref message, timeout);
+            return (SecurityProtocolCorrelationState) null;
+        }
+
+        public virtual void EndSecureOutgoingMessage(IAsyncResult result, out Message message)
+        {
+            message = CompletedAsyncResult<Message>.End(result);
+        }
+
+        public virtual void EndSecureOutgoingMessage(IAsyncResult result, out Message message, out SecurityProtocolCorrelationState newCorrelationState)
+        {
+            message = CompletedAsyncResult<Message, SecurityProtocolCorrelationState>.End(result, out newCorrelationState);
+        }
+
+        public virtual IAsyncResult BeginSecureOutgoingMessage(Message message, TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            this.SecureOutgoingMessage(ref message, timeout);
+            return (IAsyncResult) new CompletedAsyncResult<Message>(message, callback, state);
+        }
+
+        public virtual IAsyncResult BeginSecureOutgoingMessage(Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState, AsyncCallback callback, object state)
+        {
+            SecurityProtocolCorrelationState parameter = this.SecureOutgoingMessage(ref message, timeout, correlationState);
+            return (IAsyncResult) new CompletedAsyncResult<Message, SecurityProtocolCorrelationState>(message, parameter, callback, state);
+        }
+
         public void Close(bool aborted, TimeSpan timeout)
         {
             if (aborted)

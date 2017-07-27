@@ -63,6 +63,11 @@ namespace System.ServiceModel.Security.Tokens
             }
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new MessageSecurityException("UnableToCreateTokenReference"));
         }
+
+        protected internal virtual bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
+        {
+            throw new NotImplementedException("MatchesKeyIdentifierClause must be overriden");
+        }
 #endif
 
         public SecurityTokenParameters Clone()

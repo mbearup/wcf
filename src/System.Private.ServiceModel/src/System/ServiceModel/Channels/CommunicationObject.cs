@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Reflection;
@@ -31,6 +31,12 @@ namespace System.ServiceModel.Channels
         internal bool _isSynchronousClose;
         private bool _supportsAsyncOpenClose;
         private bool _supportsAsyncOpenCloseSet;
+
+#region FromWCF
+        private CommunicationObject.ExceptionQueue exceptionQueue;
+        private CommunicationState state;
+#endregion
+
 
         protected CommunicationObject()
             : this(new object())
@@ -91,6 +97,60 @@ namespace System.ServiceModel.Channels
                 _supportsAsyncOpenClose = value;
                 _supportsAsyncOpenCloseSet = true;
             }
+        }
+
+#region FromWCF
+    internal Exception GetPendingException()
+    {
+      CommunicationState state = this.state;
+      CommunicationObject.ExceptionQueue exceptionQueue = this.exceptionQueue;
+      if (exceptionQueue != null)
+        return exceptionQueue.GetException();
+      return (Exception) null;
+    }
+
+    private class ExceptionQueue
+    {
+      private Queue<Exception> exceptions = new Queue<Exception>();
+      private object thisLock;
+
+      private object ThisLock
+      {
+        get
+        {
+          return this.thisLock;
+        }
+      }
+
+      internal ExceptionQueue(object thisLock)
+      {
+        this.thisLock = thisLock;
+      }
+
+      public void AddException(Exception exception)
+      {
+        if (exception == null)
+          return;
+        lock (this.ThisLock)
+          this.exceptions.Enqueue(exception);
+      }
+
+      public Exception GetException()
+      {
+        lock (this.ThisLock)
+        {
+          if (this.exceptions.Count > 0)
+            return this.exceptions.Dequeue();
+        }
+        return (Exception) null;
+      }
+    }
+
+#endregion
+
+        internal Exception GetTerminalException()
+        {
+           return new Exception("TerminalException");
         }
 
         internal bool Aborted
@@ -378,8 +438,12 @@ namespace System.ServiceModel.Channels
             result.ToApmEnd();
         }
 
-        protected void Fault()
+        protected void Fault(Exception ex = null)
         {
+            if (ex != null)
+            {
+                Console.WriteLine("Fault: {0}", ex.ToString());
+            }
             lock (ThisLock)
             {
                 if (_state == CommunicationState.Closed || _state == CommunicationState.Closing)

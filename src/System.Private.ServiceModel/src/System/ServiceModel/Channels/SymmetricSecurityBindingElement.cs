@@ -152,15 +152,17 @@ namespace System.ServiceModel.Channels
     }*/
 
     // Nothing to override
-    // internal override SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext)
-    /*internal SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext)
+    internal override SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext)
     {
       if (context == null)
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
       if (credentialsManager == null)
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("credentialsManager");
       if (this.ProtectionTokenParameters == null)
-        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(System.ServiceModel.SR.GetString("SymmetricSecurityBindingElementNeedsProtectionTokenParameters", new object[1]{ (object) this.ToString() })));
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SymmetricSecurityBindingElementNeedsProtectionTokenParameters", new object[1]{ (object) this.ToString() })));
+#if FEATURE_CORECLR
+      throw new NotImplementedException("SymmetricSecurityProtocolFactory not supported in .NET Core");
+#else
       SymmetricSecurityProtocolFactory securityProtocolFactory = new SymmetricSecurityProtocolFactory();
       if (isForService)
         this.ApplyAuditBehaviorSettings(context, (SecurityProtocolFactory) securityProtocolFactory);
@@ -176,7 +178,8 @@ namespace System.ServiceModel.Channels
       securityProtocolFactory.ProtectionRequirements.Add(SecurityBindingElement.ComputeProtectionRequirements((SecurityBindingElement) this, context.BindingParameters, context.Binding.Elements, isForService));
       this.ConfigureProtocolFactory((SecurityProtocolFactory) securityProtocolFactory, credentialsManager, isForService, issuerBindingContext, (Binding) context.Binding);
       return (SecurityProtocolFactory) securityProtocolFactory;
-    }*/
+#endif
+    }
 
     /*internal override bool RequiresChannelDemuxer()
     {
@@ -187,24 +190,29 @@ namespace System.ServiceModel.Channels
 
     protected override IChannelFactory<TChannel> BuildChannelFactoryCore<TChannel>(BindingContext context)
     {
-      throw new NotImplementedException("BuildChannelFactoryCore is not implemented in .NET Core");
-
-      /*ISecurityCapabilities property = this.GetProperty<ISecurityCapabilities>(context);
+      ISecurityCapabilities property = this.GetProperty<ISecurityCapabilities>(context);
       SecurityCredentialsManager credentialsManager = context.BindingParameters.Find<SecurityCredentialsManager>() ?? (SecurityCredentialsManager) ClientCredentials.CreateDefaultCredentials();
       bool addChannelDemuxerIfRequired = this.RequiresChannelDemuxer();
       ChannelBuilder channelBuilder = new ChannelBuilder(context, addChannelDemuxerIfRequired);
       if (addChannelDemuxerIfRequired)
+      {
+#if FEATURE_CORECLR
+        throw new NotImplementedException("ApplyPropertiesOnDemuxer is not supported in .NET Core");
+#else
         this.ApplyPropertiesOnDemuxer(channelBuilder, context);
+#endif
+      }
       BindingContext bindingContext1 = context.Clone();
       SecurityChannelFactory<TChannel> securityChannelFactory;
       if (this.ProtectionTokenParameters is SecureConversationSecurityTokenParameters)
       {
         SecureConversationSecurityTokenParameters protectionTokenParameters = (SecureConversationSecurityTokenParameters) this.ProtectionTokenParameters;
         if (protectionTokenParameters.BootstrapSecurityBindingElement == null)
-          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(System.ServiceModel.SR.GetString("SecureConversationSecurityTokenParametersRequireBootstrapBinding")));
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SecureConversationSecurityTokenParametersRequireBootstrapBinding")));
         BindingContext bindingContext2 = bindingContext1.Clone();
         bindingContext2.BindingParameters.Remove<ChannelProtectionRequirements>();
-        bindingContext2.BindingParameters.Add((object) protectionTokenParameters.BootstrapProtectionRequirements);
+// BootstrapProtectionRequirements not supported
+//         bindingContext2.BindingParameters.Add((object) protectionTokenParameters.BootstrapProtectionRequirements);
         if (protectionTokenParameters.RequireCancellation)
         {
           SessionSymmetricMessageSecurityProtocolFactory securityProtocolFactory = new SessionSymmetricMessageSecurityProtocolFactory();
@@ -234,6 +242,9 @@ namespace System.ServiceModel.Channels
         }
         else
         {
+#if FEATURE_CORECLR
+          throw new NotImplementedException("SymmetricSecurityProtocolFactory not supported in .NET Core");
+#else
           SymmetricSecurityProtocolFactory securityProtocolFactory = new SymmetricSecurityProtocolFactory();
           securityProtocolFactory.SecurityTokenParameters = protectionTokenParameters.Clone();
           ((SecureConversationSecurityTokenParameters) securityProtocolFactory.SecurityTokenParameters).IssuerBindingContext = bindingContext2;
@@ -247,6 +258,7 @@ namespace System.ServiceModel.Channels
           securityProtocolFactory.ProtectionRequirements.Add(SecurityBindingElement.ComputeProtectionRequirements((SecurityBindingElement) this, context.BindingParameters, context.Binding.Elements, false));
           this.ConfigureProtocolFactory((SecurityProtocolFactory) securityProtocolFactory, credentialsManager, false, bindingContext1, (Binding) context.Binding);
           securityChannelFactory = new SecurityChannelFactory<TChannel>(property, context, channelBuilder, (SecurityProtocolFactory) securityProtocolFactory);
+#endif
         }
       }
       else
@@ -255,7 +267,6 @@ namespace System.ServiceModel.Channels
         securityChannelFactory = new SecurityChannelFactory<TChannel>(property, context, channelBuilder, securityProtocolFactory);
       }
       return (IChannelFactory<TChannel>) securityChannelFactory;
-      */
     }
 
     /*
@@ -274,7 +285,7 @@ namespace System.ServiceModel.Channels
       {
         SecureConversationSecurityTokenParameters protectionTokenParameters = (SecureConversationSecurityTokenParameters) this.ProtectionTokenParameters;
         if (protectionTokenParameters.BootstrapSecurityBindingElement == null)
-          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(System.ServiceModel.SR.GetString("SecureConversationSecurityTokenParametersRequireBootstrapBinding")));
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SecureConversationSecurityTokenParametersRequireBootstrapBinding")));
         BindingContext secureConversationBindingContext = bindingContext.Clone();
         secureConversationBindingContext.BindingParameters.Remove<ChannelProtectionRequirements>();
         secureConversationBindingContext.BindingParameters.Add((object) protectionTokenParameters.BootstrapProtectionRequirements);

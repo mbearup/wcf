@@ -99,6 +99,76 @@ namespace System.ServiceModel.Channels
       }
     }
 
+    internal void ConfigureProtocolFactory(SecurityProtocolFactory factory, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext, Binding binding)
+    {
+      if (factory == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("factory"));
+      if (credentialsManager == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("credentialsManager"));
+#if FEATURE_CORECLR
+      throw new NotImplementedException("SecurityProtocolFactory.AddTimestamp is not supported");
+#else
+      factory.AddTimestamp = this.IncludeTimestamp;
+      factory.IncomingAlgorithmSuite = this.DefaultAlgorithmSuite;
+      factory.OutgoingAlgorithmSuite = this.DefaultAlgorithmSuite;
+      factory.SecurityHeaderLayout = this.SecurityHeaderLayout;
+      if (!isForService)
+      {
+        factory.TimestampValidityDuration = this.LocalClientSettings.TimestampValidityDuration;
+        factory.DetectReplays = this.LocalClientSettings.DetectReplays;
+        factory.MaxCachedNonces = this.LocalClientSettings.ReplayCacheSize;
+        factory.MaxClockSkew = this.LocalClientSettings.MaxClockSkew;
+        factory.ReplayWindow = this.LocalClientSettings.ReplayWindow;
+        if (this.LocalClientSettings.DetectReplays)
+          factory.NonceCache = this.LocalClientSettings.NonceCache;
+      }
+      else
+      {
+        factory.TimestampValidityDuration = this.LocalServiceSettings.TimestampValidityDuration;
+        factory.DetectReplays = this.LocalServiceSettings.DetectReplays;
+        factory.MaxCachedNonces = this.LocalServiceSettings.ReplayCacheSize;
+        factory.MaxClockSkew = this.LocalServiceSettings.MaxClockSkew;
+        factory.ReplayWindow = this.LocalServiceSettings.ReplayWindow;
+        if (this.LocalServiceSettings.DetectReplays)
+          factory.NonceCache = this.LocalServiceSettings.NonceCache;
+      }
+      factory.SecurityBindingElement = (SecurityBindingElement) this.Clone();
+      factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
+      factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
+      SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this.messageSecurityVersion.SecurityTokenVersion);
+      factory.StandardsManager = new SecurityStandardsManager(this.messageSecurityVersion, securityTokenSerializer);
+      if (isForService)
+        return;
+      this.SetPrivacyNoticeUriIfRequired(factory, binding);
+#endif
+    }
+
+    internal abstract SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuanceBindingContext);
+
+    internal static ChannelProtectionRequirements ComputeProtectionRequirements(SecurityBindingElement security, BindingParameterCollection parameterCollection, BindingElementCollection bindingElements, bool isForService)
+    {
+      if (parameterCollection == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameterCollection");
+      if (bindingElements == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bindingElements");
+      if (security == null)
+        return (ChannelProtectionRequirements) null;
+#if FEATURE_CORECLR
+      throw new NotImplementedException("AsymmetricSecurityBindingElement not supported");
+#else
+      ChannelProtectionRequirements requirements = (ChannelProtectionRequirements) null;
+      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
+      {
+        requirements = new ChannelProtectionRequirements();
+        ChannelProtectionRequirements protectionRequirements = parameterCollection.Find<ChannelProtectionRequirements>();
+        if (protectionRequirements != null)
+          requirements.Add(protectionRequirements);
+        SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
+      }
+      return requirements;
+#endif
+    }
+
     public static SymmetricSecurityBindingElement CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
     {
       if (issuedTokenParameters == null)

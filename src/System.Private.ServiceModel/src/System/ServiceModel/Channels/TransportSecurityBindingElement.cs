@@ -70,6 +70,26 @@ namespace System.ServiceModel.Channels
             }
         }
 
+#region fromwcf
+    internal override SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext)
+    {
+      if (context == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+      if (credentialsManager == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("credentialsManager");
+#if FEATURE_CORECLR
+      throw new NotImplementedException("TransportSecurityProtocolFactory not supported in .NET Core");
+#else
+      TransportSecurityProtocolFactory securityProtocolFactory = new TransportSecurityProtocolFactory();
+      if (isForService)
+        this.ApplyAuditBehaviorSettings(context, (SecurityProtocolFactory) securityProtocolFactory);
+      this.ConfigureProtocolFactory((SecurityProtocolFactory) securityProtocolFactory, credentialsManager, isForService, issuerBindingContext, (Binding) context.Binding);
+      securityProtocolFactory.DetectReplays = false;
+      return (SecurityProtocolFactory) securityProtocolFactory;
+#endif
+    }
+#endregion
+
         public override BindingElement Clone()
         {
             return new TransportSecurityBindingElement(this);
