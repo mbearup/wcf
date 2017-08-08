@@ -68,7 +68,9 @@ namespace System.ServiceModel.Security
         public WSSecurityTokenSerializer(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, bool emitBspRequiredAttributes, SamlSerializer1 samlSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maximumKeyDerivationOffset, int maximumKeyDerivationLabelLength, int maximumKeyDerivationNonceLength)
         {
+#if !FEATURE_CORECLR
             throw ExceptionHelper.PlatformNotSupported();
+#endif
         }
 
         public static WSSecurityTokenSerializer DefaultInstance

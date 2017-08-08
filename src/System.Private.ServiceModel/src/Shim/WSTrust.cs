@@ -1342,16 +1342,18 @@ namespace System.ServiceModel.Security
         if (requestorEntropy1 != null)
         {
           if (requestorEntropy1 is BinarySecretSecurityToken)
+          {
             requestorEntropy2 = ((BinarySecretSecurityToken) requestorEntropy1).GetKeyBytes();
-#if FEATURE_CORECLR
-          // WrappedKeySecurityToken not supported in .NET Core
-#else
+          }
+#if !FEATURE_CORECLR
           else if (requestorEntropy1 is WrappedKeySecurityToken)
             requestorEntropy2 = ((WrappedKeySecurityToken) requestorEntropy1).GetWrappedKey();
 #endif
-
           else
+          {
+            Console.WriteLine("TODO WrappedKeySecurityToken not supported in .NET Core!");
             throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperWarning((Exception) new InvalidOperationException(SR.GetString("TokenCannotCreateSymmetricCrypto", new object[1]{ (object) requestorEntropy1 })));
+          }
         }
         else
           requestorEntropy2 = (byte[]) null;

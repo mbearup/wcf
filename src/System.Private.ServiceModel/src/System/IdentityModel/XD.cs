@@ -160,7 +160,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class ExclusiveC14NDictionary
+    public class ExclusiveC14NDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString PrefixList;
@@ -193,7 +193,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SamlDictionary
+    public class SamlDictionary
     {
         public XmlDictionaryString Access;
         public XmlDictionaryString AccessDecision;
@@ -385,7 +385,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecureConversationDictionary
+    public class SecureConversationDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DerivedKeyToken;
@@ -435,7 +435,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecureConversationDec2005Dictionary : SecureConversationDictionary
+    public class SecureConversationDec2005Dictionary : SecureConversationDictionary
     {
         public SecureConversationDec2005Dictionary(IdentityModelDictionary dictionary) : base(dictionary)
         {
@@ -505,7 +505,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecureConversationFeb2005Dictionary : SecureConversationDictionary
+    public class SecureConversationFeb2005Dictionary : SecureConversationDictionary
     {
         public SecureConversationFeb2005Dictionary(IdentityModelDictionary dictionary) : base(dictionary)
         {
@@ -573,7 +573,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecurityAlgorithmDictionary
+    public class SecurityAlgorithmDictionary
     {
         public XmlDictionaryString Aes128Encryption;
         public XmlDictionaryString Aes128KeyWrap;
@@ -669,7 +669,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecurityAlgorithmDec2005Dictionary
+    public class SecurityAlgorithmDec2005Dictionary
     {
         public XmlDictionaryString Psha1KeyDerivationDec2005;
 
@@ -693,7 +693,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecurityJan2004Dictionary
+    public class SecurityJan2004Dictionary
     {
         public XmlDictionaryString Prefix;
         public XmlDictionaryString NonceElement;
@@ -804,7 +804,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class SecurityXXX2005Dictionary
+    public class SecurityXXX2005Dictionary
     {
         public XmlDictionaryString Prefix;
         public XmlDictionaryString SignatureConfirmation;
@@ -861,7 +861,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class TrustDictionary
+    public class TrustDictionary
     {
         public XmlDictionaryString RequestSecurityTokenResponseCollection;
         public XmlDictionaryString Namespace;
@@ -950,7 +950,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class TrustDec2005Dictionary : TrustDictionary
+    public class TrustDec2005Dictionary : TrustDictionary
     {
         public TrustDec2005Dictionary(IdentityModelDictionary dictionary) : base(dictionary)
         {
@@ -1098,7 +1098,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class TrustFeb2005Dictionary : TrustDictionary
+    public class TrustFeb2005Dictionary : TrustDictionary
     {
         public TrustFeb2005Dictionary(IdentityModelDictionary dictionary) : base(dictionary)
         {
@@ -1220,7 +1220,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class UtilityDictionary
+    public class UtilityDictionary
     {
         public XmlDictionaryString IdAttribute;
         public XmlDictionaryString Namespace;
@@ -1259,7 +1259,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class XmlEncryptionDictionary
+    public class XmlEncryptionDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DataReference;
@@ -1340,7 +1340,7 @@ namespace System.IdentityModel
         }
     }
 
-    internal class XmlSignatureDictionary
+    public class XmlSignatureDictionary
     {
         public XmlDictionaryString Algorithm;
         public XmlDictionaryString URI;

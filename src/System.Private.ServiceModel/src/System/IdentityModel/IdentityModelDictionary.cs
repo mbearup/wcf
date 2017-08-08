@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace System.IdentityModel
 {
-    internal class IdentityModelDictionary : IXmlDictionary
+    public class IdentityModelDictionary : IXmlDictionary
     {
         static public readonly IdentityModelDictionary Version1 = new IdentityModelDictionary(new IdentityModelStringsVersion1());
         private IdentityModelStrings _strings;

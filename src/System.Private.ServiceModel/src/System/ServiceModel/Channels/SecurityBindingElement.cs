@@ -9,6 +9,7 @@ using System.Net.Security;
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.IdentityModel.Tokens;
+using System.IdentityModel.Selectors;
 using System.Text;
 using System.Xml;
 
@@ -34,16 +35,22 @@ namespace System.ServiceModel.Channels
         private long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         private XmlDictionaryReaderQuotas _readerQuotas;
         private bool _protectTokens = defaultProtectTokens;
+#region fromwcf
+        internal static readonly SecurityAlgorithmSuite defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
+        private SecurityAlgorithmSuite _defaultAlgorithmSuite;
+#endregion
 
         internal SecurityBindingElement()
             : base()
         {
+            Console.WriteLine("SecurityBindingElement constructor");
             _messageSecurityVersion = MessageSecurityVersion.Default;
             _includeTimestamp = defaultIncludeTimestamp;
             _localClientSettings = new LocalClientSecuritySettings();
             _endpointSupportingTokenParameters = new SupportingTokenParameters();
             _securityHeaderLayout = SecurityProtocolFactory.defaultSecurityHeaderLayout;
             _localServiceSettings = new LocalServiceSecuritySettings();
+            _defaultAlgorithmSuite = SecurityBindingElement.defaultDefaultAlgorithmSuite;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -51,7 +58,7 @@ namespace System.ServiceModel.Channels
         {
             if (elementToBeCloned == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
-
+            Console.WriteLine("SecurityBindingElement CLONE constructor");
             _includeTimestamp = elementToBeCloned._includeTimestamp;
             _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
@@ -60,22 +67,30 @@ namespace System.ServiceModel.Channels
             _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
             _readerQuotas = elementToBeCloned._readerQuotas;
             _localServiceSettings = elementToBeCloned._localServiceSettings.Clone();
+            _defaultAlgorithmSuite = elementToBeCloned.DefaultAlgorithmSuite;
         }
 
 #region FromWCF
-    private SecurityAlgorithmSuite defaultAlgorithmSuite;
-
+    private void SetPrivacyNoticeUriIfRequired(SecurityProtocolFactory factory, Binding binding)
+    {
+      PrivacyNoticeBindingElement noticeBindingElement = binding.CreateBindingElements().Find<PrivacyNoticeBindingElement>();
+      if (noticeBindingElement == null)
+        return;
+      factory.PrivacyNoticeUri = noticeBindingElement.Url;
+      factory.PrivacyNoticeVersion = noticeBindingElement.Version;
+    }
+    
     public SecurityAlgorithmSuite DefaultAlgorithmSuite
     {
       get
       {
-        return this.defaultAlgorithmSuite;
+        return this._defaultAlgorithmSuite;
       }
       set
       {
         if (value == null)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("value"));
-        this.defaultAlgorithmSuite = value;
+        this._defaultAlgorithmSuite = value;
       }
     }
 
@@ -105,10 +120,11 @@ namespace System.ServiceModel.Channels
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("factory"));
       if (credentialsManager == null)
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("credentialsManager"));
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SecurityProtocolFactory.AddTimestamp is not supported");
-#else
       factory.AddTimestamp = this.IncludeTimestamp;
+      if (this.DefaultAlgorithmSuite == null)
+      {
+          Console.WriteLine("Cannot use a DefaultAlgorithmSuite that is null");
+      }
       factory.IncomingAlgorithmSuite = this.DefaultAlgorithmSuite;
       factory.OutgoingAlgorithmSuite = this.DefaultAlgorithmSuite;
       factory.SecurityHeaderLayout = this.SecurityHeaderLayout;
@@ -133,14 +149,14 @@ namespace System.ServiceModel.Channels
           factory.NonceCache = this.LocalServiceSettings.NonceCache;
       }
       factory.SecurityBindingElement = (SecurityBindingElement) this.Clone();
-      factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
+      Console.WriteLine("Skipping SecurityBindingElement.SetIssuerBindingContextIfRequired");
+      // factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
       factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
-      SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this.messageSecurityVersion.SecurityTokenVersion);
-      factory.StandardsManager = new SecurityStandardsManager(this.messageSecurityVersion, securityTokenSerializer);
+      SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this._messageSecurityVersion.SecurityTokenVersion);
+      factory.StandardsManager = new SecurityStandardsManager(this._messageSecurityVersion, securityTokenSerializer);
       if (isForService)
         return;
       this.SetPrivacyNoticeUriIfRequired(factory, binding);
-#endif
     }
 
     internal abstract SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuanceBindingContext);
@@ -153,20 +169,19 @@ namespace System.ServiceModel.Channels
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bindingElements");
       if (security == null)
         return (ChannelProtectionRequirements) null;
-#if FEATURE_CORECLR
-      throw new NotImplementedException("AsymmetricSecurityBindingElement not supported");
-#else
       ChannelProtectionRequirements requirements = (ChannelProtectionRequirements) null;
-      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
+      Console.WriteLine("Skipping AsymmetricSecurityBindingElement because it's not supported");
+//      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
+      if (security is SymmetricSecurityBindingElement)
       {
         requirements = new ChannelProtectionRequirements();
         ChannelProtectionRequirements protectionRequirements = parameterCollection.Find<ChannelProtectionRequirements>();
         if (protectionRequirements != null)
           requirements.Add(protectionRequirements);
-        SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
+        Console.WriteLine("TODO - AddBindingProtectionRequirements");
+        // SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
       }
       return requirements;
-#endif
     }
 
     public static SymmetricSecurityBindingElement CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)

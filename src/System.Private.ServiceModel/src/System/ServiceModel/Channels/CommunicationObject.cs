@@ -521,6 +521,7 @@ namespace System.ServiceModel.Channels
             // then use it for both async and sync opens
             if (SupportsAsyncOpenClose)
             {
+                Console.WriteLine("CommunicationObject.OnOpenAsyncInternal.SupportsAsyncOpenClose");
                 // The class supports OnOpenAsync(), so use it
                 await OnOpenAsync(timeout);
             }
@@ -530,11 +531,13 @@ namespace System.ServiceModel.Channels
                 // If this is a synchronous open, invoke the synchronous OnOpen)
                 if (_isSynchronousOpen)
                 {
+                    Console.WriteLine("CommunicationObject.OnOpenAsyncInternal._isSynchronousOpen");
                     await TaskHelpers.CallActionAsync<TimeSpan>(OnOpen, timeout);
                 }
                 else
                 {
                     // The class does not support OnOpenAsync, so use the Begin/End pattern
+                    Console.WriteLine("CommunicationObject.OnOpenAsyncInternal.!_isSynchronousOpen");
                     await Task.Factory.FromAsync(OnBeginOpen, OnEndOpen, timeout, TaskCreationOptions.RunContinuationsAsynchronously);
                 }
             }

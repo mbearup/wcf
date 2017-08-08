@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Runtime;
 using System.ServiceModel.Diagnostics;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 
 namespace System.ServiceModel.Channels
 {
@@ -78,6 +79,14 @@ namespace System.ServiceModel.Channels
       }
     }
 
+#region Fromwcf
+        protected internal override Task OnOpenAsync(TimeSpan timeout)
+        {
+            this.OnOpen(timeout);
+            return TaskHelpers.CompletedTask();
+        }
+#endregion
+
     public SecurityChannelFactory(ISecurityCapabilities securityCapabilities, BindingContext context, SecuritySessionClientSettings<TChannel> sessionClientSettings)
       : this(securityCapabilities, context, sessionClientSettings.ChannelBuilder, sessionClientSettings.CreateInnerChannelFactory())
     {
@@ -125,7 +134,7 @@ namespace System.ServiceModel.Channels
         return (T) Convert.ChangeType(this.SessionClientSettings, typeof(T));
       }
       if (typeof (T) == typeof (ISecurityCapabilities))
-        return (T) Convert.ChangeType(this.securityCapabilities, typeof(T));
+        return (T) (object)this.securityCapabilities;
       return base.GetProperty<T>();
     }
 
@@ -177,11 +186,7 @@ namespace System.ServiceModel.Channels
       this.ThrowIfDisposed();
       if (this.SessionMode)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SecuritySessionClientSettings.OnCreateChannel not supported in .NET Core");
-#else
         return this.sessionClientSettings.OnCreateChannel(address, via);
-#endif
       }
       if (typeof (TChannel) == typeof (IOutputChannel))
       {
@@ -215,6 +220,9 @@ namespace System.ServiceModel.Channels
 
     protected override void OnOpen(TimeSpan timeout)
     {
+#if FEATURE_CORECLR
+      Console.WriteLine("**SecurityChannelFactory.OnOpen**");
+#endif
       TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
       this.OnOpenCore(timeoutHelper.RemainingTime());
       base.OnOpen(timeoutHelper.RemainingTime());
@@ -243,7 +251,8 @@ namespace System.ServiceModel.Channels
     protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
     {
 #if FEATURE_CORECLR
-      throw new NotImplementedException("CommunicationObject.OnOpen not supported in .NET Core");
+      Console.WriteLine("**SecurityChannelFactory.OnBeginOpen**");
+      throw new NotImplementedException("SecurityChannelFactory.OnBeginOpen not supported in .NET Core");
 #else
       return (IAsyncResult) new OperationWithTimeoutAsyncResult(new OperationWithTimeoutCallback(base.OnOpen), timeout, callback, state);
 #endif

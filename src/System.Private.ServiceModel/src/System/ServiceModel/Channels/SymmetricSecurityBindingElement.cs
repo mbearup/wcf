@@ -237,6 +237,7 @@ namespace System.ServiceModel.Channels
           sessionClientSettings.IssuedSecurityTokenParameters = protectionTokenParameters.Clone();
           ((SecureConversationSecurityTokenParameters) sessionClientSettings.IssuedSecurityTokenParameters).IssuerBindingContext = bindingContext1;
           sessionClientSettings.SecurityStandardsManager = securityProtocolFactory.StandardsManager;
+          Console.WriteLine("Assigned sessionClientSettings.SessionProtocolFactory");
           sessionClientSettings.SessionProtocolFactory = (SecurityProtocolFactory) securityProtocolFactory;
           securityChannelFactory = new SecurityChannelFactory<TChannel>(property, context, sessionClientSettings);
         }

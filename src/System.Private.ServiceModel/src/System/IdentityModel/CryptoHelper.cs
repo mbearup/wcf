@@ -70,6 +70,16 @@ namespace System.IdentityModel
         {
           CryptoHelper.random.GetBytes(buffer);
         }
+        
+        internal static HashAlgorithm NewSha1HashAlgorithm()
+        {
+          return CryptoHelper.CreateHashAlgorithm("http://www.w3.org/2000/09/xmldsig#sha1");
+        }
+        
+        internal static HashAlgorithm CreateHashAlgorithm(string s)
+        {
+            throw ExceptionHelper.PlatformNotSupported();
+        }
     }
 }
 

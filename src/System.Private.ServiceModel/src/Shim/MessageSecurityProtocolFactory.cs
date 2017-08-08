@@ -172,13 +172,9 @@ namespace System.ServiceModel.Security
         if (!this.StandardsManager.SecurityVersion.SupportsSignatureConfirmation)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("SecurityVersionDoesNotSupportSignatureConfirmation", new object[1]{ (object) this.StandardsManager.SecurityVersion }));
       }
-#if FEATURE_CORECLR
-      throw new NotImplementedException("WrappedKeySecurityToken not supported in .NET Core");
-#else
       this.wrappedKeyTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
       this.wrappedKeyTokenAuthenticator.Add((SecurityTokenAuthenticator) new NonValidatingSecurityTokenAuthenticator<WrappedKeySecurityToken>());
       this.ValidateCorrelationSecuritySettings();
-#endif
     }
 
     private static MessagePartSpecification ExtractMessageParts(string action, ScopedMessagePartSpecification scopedParts, bool isForSignature)

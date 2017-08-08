@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Runtime;
 using System.ServiceModel.Channels;
 using System.Globalization;
 using System.IdentityModel.Selectors;
@@ -9,8 +11,9 @@ using System.Security.Authentication.ExtendedProtection;
 
 namespace System.ServiceModel.Security
 {
-    internal class SecurityProtocolFactory
+    internal class SecurityProtocolFactory : ISecurityCommunicationObject
     {
+        
         internal const bool defaultAddTimestamp = true;
         internal const bool defaultDeriveKeys = true;
         internal const bool defaultDetectReplays = true;
@@ -37,6 +40,16 @@ namespace System.ServiceModel.Security
         private bool detectReplays = true;
         private string requestReplyErrorPropertyName;
         private bool expectKeyDerivation;
+#region fromwcf
+        private bool addTimestamp = true;
+        private SecurityAlgorithmSuite incomingAlgorithmSuite = SecurityAlgorithmSuite.Default;
+        private int maxCachedNonces = 900000;
+        private NonceCache nonceCache;
+        private TimeSpan maxClockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
+        private TimeSpan replayWindow = SecurityProtocolFactory.defaultReplayWindow;
+        private SecurityHeaderLayout securityHeaderLayout;
+        private TimeSpan timestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
+#endregion
 
     public IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
     {
@@ -44,6 +57,218 @@ namespace System.ServiceModel.Security
     }
 
 #region fromwcf
+    public IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OperationWithTimeoutAsyncResult constructor requires System.Action<System.TimeSpan>");
+#else
+      return (IAsyncResult) new OperationWithTimeoutAsyncResult(new OperationWithTimeoutCallback(this.OnClose), timeout, callback, state);
+#endif
+    }
+
+    public IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OperationWithTimeoutAsyncResult constructor requires System.Action<System.TimeSpan>");
+#else
+      return (IAsyncResult) new OperationWithTimeoutAsyncResult(new OperationWithTimeoutCallback(this.OnOpen), timeout, callback, state);
+#endif
+    }
+
+    public void OnClosed()
+    {
+    }
+
+    public void OnClosing()
+    {
+    }
+
+    public void OnEndClose(IAsyncResult result)
+    {
+      OperationWithTimeoutAsyncResult.End(result);
+    }
+
+    public void OnEndOpen(IAsyncResult result)
+    {
+      OperationWithTimeoutAsyncResult.End(result);
+    }
+
+    public void OnFaulted()
+    {
+    }
+
+    public void OnOpened()
+    {
+    }
+
+    public void OnOpening()
+    {
+    }
+    
+    public virtual void OnAbort()
+    {
+      if (this.actAsInitiator)
+        return;
+#if FEATURE_CORECLR
+      throw new NotImplementedException("scopedSupportingTokenAuthenticatorSpecification not supported in .NET Core");
+#else
+      foreach (SupportingTokenAuthenticatorSpecification authenticatorSpecification in (IEnumerable<SupportingTokenAuthenticatorSpecification>) this.channelSupportingTokenAuthenticatorSpecification)
+        SecurityUtils.AbortTokenAuthenticatorIfRequired(authenticatorSpecification.TokenAuthenticator);
+      foreach (string key in this.scopedSupportingTokenAuthenticatorSpecification.Keys)
+      {
+        foreach (SupportingTokenAuthenticatorSpecification authenticatorSpecification in (IEnumerable<SupportingTokenAuthenticatorSpecification>) this.scopedSupportingTokenAuthenticatorSpecification[key])
+          SecurityUtils.AbortTokenAuthenticatorIfRequired(authenticatorSpecification.TokenAuthenticator);
+      }
+#endif
+    }
+
+    public virtual void OnClose(TimeSpan timeout)
+    {
+      if (this.actAsInitiator)
+        return;
+#if FEATURE_CORECLR
+      throw new NotImplementedException("scopedSupportingTokenAuthenticatorSpecification not supported in .NET Core");
+#else
+      TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+      foreach (SupportingTokenAuthenticatorSpecification authenticatorSpecification in (IEnumerable<SupportingTokenAuthenticatorSpecification>) this.channelSupportingTokenAuthenticatorSpecification)
+        SecurityUtils.CloseTokenAuthenticatorIfRequired(authenticatorSpecification.TokenAuthenticator, timeoutHelper.RemainingTime());
+      foreach (string key in this.scopedSupportingTokenAuthenticatorSpecification.Keys)
+      {
+        foreach (SupportingTokenAuthenticatorSpecification authenticatorSpecification in (IEnumerable<SupportingTokenAuthenticatorSpecification>) this.scopedSupportingTokenAuthenticatorSpecification[key])
+          SecurityUtils.CloseTokenAuthenticatorIfRequired(authenticatorSpecification.TokenAuthenticator, timeoutHelper.RemainingTime());
+      }
+#endif
+    }
+    
+    public TimeSpan DefaultOpenTimeout
+    {
+      get
+      {
+        return ServiceDefaults.OpenTimeout;
+      }
+    }
+
+    public TimeSpan DefaultCloseTimeout
+    {
+      get
+      {
+        return ServiceDefaults.CloseTimeout;
+      }
+    }
+    
+    public TimeSpan TimestampValidityDuration
+    {
+      get
+      {
+        return this.timestampValidityDuration;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        if (value <= TimeSpan.Zero)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value", SR.GetString("TimeSpanMustbeGreaterThanTimeSpanZero")));
+        this.timestampValidityDuration = value;
+      }
+    }
+    
+    public SecurityHeaderLayout SecurityHeaderLayout
+    {
+      get
+      {
+        return this.securityHeaderLayout;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        this.securityHeaderLayout = value;
+      }
+    }
+
+    public TimeSpan ReplayWindow
+    {
+      get
+      {
+        return this.replayWindow;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        if (value <= TimeSpan.Zero)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value", SR.GetString("TimeSpanMustbeGreaterThanTimeSpanZero")));
+        this.replayWindow = value;
+      }
+    }
+
+    public NonceCache NonceCache
+    {
+      get
+      {
+        return this.nonceCache;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        this.nonceCache = value;
+      }
+    }
+
+    public TimeSpan MaxClockSkew
+    {
+      get
+      {
+        return this.maxClockSkew;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        if (value < TimeSpan.Zero)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value"));
+        this.maxClockSkew = value;
+      }
+    }
+
+    public int MaxCachedNonces
+    {
+      get
+      {
+        return this.maxCachedNonces;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        if (value <= 0)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value"));
+        this.maxCachedNonces = value;
+      }
+    }
+    
+    public bool AddTimestamp
+    {
+      get
+      {
+        return this.addTimestamp;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        this.addTimestamp = value;
+      }
+    }
+    
+    public SecurityAlgorithmSuite IncomingAlgorithmSuite
+    {
+      get
+      {
+        return this.incomingAlgorithmSuite;
+      }
+      set
+      {
+        this.ThrowIfImmutable();
+        if (value == null)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("value"));
+        this.incomingAlgorithmSuite = value;
+      }
+    }
 
     internal bool ExpectKeyDerivation
     {
@@ -59,7 +284,10 @@ namespace System.ServiceModel.Security
 
     public SecurityProtocolFactory()
     {
-      communicationObject = new WrapperSecurityCommunicationObject((ISecurityCommunicationObject) this);
+      // this.channelSupportingTokenAuthenticatorSpecification = (ICollection<SupportingTokenAuthenticatorSpecification>) new Collection<SupportingTokenAuthenticatorSpecification>();
+      // this.scopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>();
+      Console.WriteLine("SecurityProtocolFactory Constructor");
+      communicationObject = new WrapperSecurityCommunicationObject(this);
     }
 
     internal SecurityProtocolFactory(SecurityProtocolFactory factory)
@@ -68,13 +296,13 @@ namespace System.ServiceModel.Security
       if (factory == null)
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("factory");
       this.actAsInitiator = factory.actAsInitiator;
-      //this.addTimestamp = factory.addTimestamp;
+      this.addTimestamp = factory.addTimestamp;
       this.detectReplays = factory.detectReplays;
-      // this.incomingAlgorithmSuite = factory.incomingAlgorithmSuite;
-      // this.maxCachedNonces = factory.maxCachedNonces;
-      // this.maxClockSkew = factory.maxClockSkew;
-      // this.outgoingAlgorithmSuite = factory.outgoingAlgorithmSuite;
-      // this.replayWindow = factory.replayWindow;
+      this.incomingAlgorithmSuite = factory.incomingAlgorithmSuite;
+      this.maxCachedNonces = factory.maxCachedNonces;
+      this.maxClockSkew = factory.maxClockSkew;
+      this.outgoingAlgorithmSuite = factory.outgoingAlgorithmSuite;
+      this.replayWindow = factory.replayWindow;
       // this.channelSupportingTokenAuthenticatorSpecification = (ICollection<SupportingTokenAuthenticatorSpecification>) new Collection<SupportingTokenAuthenticatorSpecification>((IList<SupportingTokenAuthenticatorSpecification>) new List<SupportingTokenAuthenticatorSpecification>((IEnumerable<SupportingTokenAuthenticatorSpecification>) factory.channelSupportingTokenAuthenticatorSpecification));
       // this.scopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>((IDictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>) factory.scopedSupportingTokenAuthenticatorSpecification);
       this.standardsManager = factory.standardsManager;
@@ -90,11 +318,12 @@ namespace System.ServiceModel.Security
       this.privacyNoticeVersion = factory.privacyNoticeVersion;
       //  this.endpointFilterTable = factory.endpointFilterTable;
       this.extendedProtectionPolicy = factory.extendedProtectionPolicy;
-      // this.nonceCache = factory.nonceCache;
+      this.nonceCache = factory.nonceCache;
     }
 
     public virtual void OnOpen(TimeSpan timeout)
     {
+      Console.WriteLine("SecurityProtocolFactory.OnOpen");
     }
 
     public virtual EndpointIdentity GetIdentityOfSelf()
@@ -149,7 +378,7 @@ namespace System.ServiceModel.Security
 
     internal void ThrowIfImmutable()
     {
-      this.communicationObject.ThrowIfDisposedOrImmutable();
+      // this.communicationObject.ThrowIfDisposedOrImmutable();
     }
 
     public BufferManager StreamBufferManager
@@ -228,6 +457,9 @@ namespace System.ServiceModel.Security
       }
       set
       {
+        Console.WriteLine("SET SecurityBindingElement");
+        if (value == null)
+        { Console.WriteLine("Cannot set SecurityBindingElement to NULL"); }
         this.ThrowIfImmutable();
         if (value != null)
           value = (SecurityBindingElement) value.Clone();
@@ -271,6 +503,10 @@ namespace System.ServiceModel.Security
 
     public void Open(bool actAsInitiator, TimeSpan timeout)
     {
+      if (this.communicationObject == null)
+      { Console.WriteLine("CommunicationObject is NULL");}
+      else
+      { Console.WriteLine("CommunicationObject is NOT NULL");}
       this.actAsInitiator = actAsInitiator;
       this.communicationObject.Open(timeout);
     }

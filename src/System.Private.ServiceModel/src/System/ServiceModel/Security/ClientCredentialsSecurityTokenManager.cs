@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
+using System.Collections.Generic;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
 using System.Net;
@@ -174,11 +174,35 @@ namespace System.ServiceModel
             return result;
         }
 
+        public SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityVersion version)
+        {
+          if (version == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("version"));
+          return this.CreateSecurityTokenSerializer((SecurityTokenVersion) MessageSecurityTokenVersion.GetSecurityTokenVersion(version, true));
+        }
+
+#region fromwcf
         public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
-            // not referenced anywhere in current code, but must implement abstract. 
-            throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenSerializer(SecurityTokenVersion version) not supported");
+          if (version == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+          if (this._parent != null && this._parent.UseIdentityConfiguration)
+          {  
+             throw new NotImplementedException("WrapTokenHandlersAsSecurityTokenSerializer not supported in .NET Core");
+             //return this.WrapTokenHandlersAsSecurityTokenSerializer(version);
+          }
+          MessageSecurityTokenVersion securityTokenVersion = version as MessageSecurityTokenVersion;
+          if (securityTokenVersion != null)
+          {  
+            Console.WriteLine("Using SamlSerializer1 - need to fix.");
+            return (SecurityTokenSerializer) new WSSecurityTokenSerializer(securityTokenVersion.SecurityVersion, securityTokenVersion.TrustVersion, securityTokenVersion.SecureConversationVersion, securityTokenVersion.EmitBspRequiredAttributes, (SamlSerializer1) null, (SecurityStateEncoder) null, (IEnumerable<System.Type>) null);
+          }
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("SecurityTokenManagerCannotCreateSerializerForVersion", new object[1]
+          {
+            (object) version
+          })));
         }
+#endregion
 
         private X509SecurityTokenAuthenticator CreateServerX509TokenAuthenticator()
         {

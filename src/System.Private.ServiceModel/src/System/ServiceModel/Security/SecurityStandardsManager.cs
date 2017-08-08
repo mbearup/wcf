@@ -53,13 +53,9 @@ namespace System.ServiceModel.Security
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
-#if FEATURE_CORECLR
-            throw ExceptionHelper.PlatformNotSupported();
-#else
             _tokenSerializer = tokenSerializer;
             _messageSecurityVersion = messageSecurityVersion;
             this._secureConversationDriver = messageSecurityVersion.SecureConversationVersion != SecureConversationVersion.WSSecureConversation13 ? (SecureConversationDriver) new WSSecureConversationFeb2005.DriverFeb2005() : (SecureConversationDriver) new WSSecureConversationDec2005.DriverDec2005();
-#endif
         }
 
         public static SecurityStandardsManager DefaultInstance
