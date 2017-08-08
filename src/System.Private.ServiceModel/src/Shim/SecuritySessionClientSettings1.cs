@@ -282,7 +282,7 @@ namespace System.ServiceModel.Security
       this.issuedTokenRenewalThreshold = this.sessionProtocolFactory.SecurityBindingElement.LocalClientSettings.CookieRenewalThresholdPercentage;
       this.ConfigureSessionProtocolFactory();
 #if FEATURE_CORECLR
-      Console.WriteLine("Calling sessionProtocolFactory.Open() with " + x );
+      Console.WriteLine("Calling sessionProtocolFactory.Open()");
 #endif
       this.sessionProtocolFactory.Open(true, timeoutHelper.RemainingTime());
     }
