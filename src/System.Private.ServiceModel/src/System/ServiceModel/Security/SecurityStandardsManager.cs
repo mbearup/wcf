@@ -17,12 +17,26 @@ using System.Runtime.CompilerServices;
 
 namespace System.ServiceModel.Security
 {
-    internal class SecurityStandardsManager
+    public class SecurityStandardsManager
     {
 #pragma warning disable 0649 // Remove this once we do real implementation, this prevents "field is never assigned to" warning
         private static SecurityStandardsManager s_instance;
         private readonly MessageSecurityVersion _messageSecurityVersion;
         private readonly TrustDriver _trustDriver;
+#if FEATURE_CORECLR
+        private readonly SecureConversationDriver _secureConversationDriver;
+        private readonly SecurityTokenSerializer _tokenSerializer;
+        private WSSecurityTokenSerializer wsSecurityTokenSerializer;
+
+        internal SecureConversationDriver SecureConversationDriver
+        {
+          get
+          {
+            return this._secureConversationDriver;
+          }
+        }
+
+#endif
 #pragma warning restore 0649
 
 
@@ -39,7 +53,18 @@ namespace System.ServiceModel.Security
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
-            throw ExceptionHelper.PlatformNotSupported();
+            Console.WriteLine("SecurityStandardsManager constructor");
+            _tokenSerializer = tokenSerializer;
+            _messageSecurityVersion = messageSecurityVersion;
+            this._secureConversationDriver = messageSecurityVersion.SecureConversationVersion != SecureConversationVersion.WSSecureConversation13 ? (SecureConversationDriver) new WSSecureConversationFeb2005.DriverFeb2005() : (SecureConversationDriver) new WSSecureConversationDec2005.DriverDec2005();
+            if (messageSecurityVersion.MessageSecurityTokenVersion.TrustVersion == TrustVersion.WSTrust13)
+            {  
+                this._trustDriver = (TrustDriver) new WSTrustDec2005.DriverDec2005(this);
+            }
+            else
+            {
+                this._trustDriver = (TrustDriver) new WSTrustFeb2005.DriverFeb2005(this);
+            }
         }
 
         public static SecurityStandardsManager DefaultInstance
@@ -51,6 +76,45 @@ namespace System.ServiceModel.Security
                 return s_instance;
             }
         }
+
+#if FEATURE_CORECLR
+
+        private WSSecurityTokenSerializer WSSecurityTokenSerializer
+        {
+          get
+          {
+            if (this.wsSecurityTokenSerializer == null)
+              this.wsSecurityTokenSerializer = this._tokenSerializer as WSSecurityTokenSerializer ?? new WSSecurityTokenSerializer(this.SecurityVersion);
+            return this.wsSecurityTokenSerializer;
+          }
+        }
+
+        internal SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXml(XmlElement element, SecurityTokenReferenceStyle tokenReferenceStyle)
+        {
+          return this.WSSecurityTokenSerializer.CreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle);
+        }
+
+        internal bool TryCreateKeyIdentifierClauseFromTokenXml(XmlElement element, SecurityTokenReferenceStyle tokenReferenceStyle, out SecurityKeyIdentifierClause securityKeyIdentifierClause)
+        {
+          return this.WSSecurityTokenSerializer.TryCreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle, out securityKeyIdentifierClause);
+        }
+
+        internal SecurityTokenSerializer SecurityTokenSerializer
+        {
+          get
+          {
+            return this._tokenSerializer;
+          }
+        }
+
+        internal TrustVersion TrustVersion
+        {
+          get
+          {
+            return this._messageSecurityVersion.TrustVersion;
+          }
+        }
+#endif
 
         public SecurityVersion SecurityVersion
         {

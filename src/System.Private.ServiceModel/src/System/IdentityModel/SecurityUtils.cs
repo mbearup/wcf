@@ -7,10 +7,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
+using System.IdentityModel.Tokens;
 using System.Runtime;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Security.Tokens;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel;
+using System.Xml;
 using System.Text;
 
 namespace System.IdentityModel
@@ -28,6 +32,11 @@ namespace System.IdentityModel
         public const string AuthTypeCertMap = "SSL/PCT"; // mapped from a cert
         public const string AuthTypeBasic = "Basic"; //LogonUser
 
+        internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
+        {
+          return new List<SecurityKey>(1) { (SecurityKey) new InMemorySymmetricSecurityKey(key) }.AsReadOnly();
+        }
+
         internal static IIdentity AnonymousIdentity
         {
             get
@@ -40,6 +49,72 @@ namespace System.IdentityModel
             }
         }
 
+#region FromWCF
+    internal static byte[] EncryptKey(SecurityToken wrappingToken, string encryptionMethod, byte[] keyToWrap)
+    {
+      SecurityKey securityKey = (SecurityKey) null;
+      if (wrappingToken.SecurityKeys != null)
+      {
+        for (int index = 0; index < wrappingToken.SecurityKeys.Count; ++index)
+        {
+          if (wrappingToken.SecurityKeys[index].IsSupportedAlgorithm(encryptionMethod))
+          {
+            securityKey = wrappingToken.SecurityKeys[index];
+            break;
+          }
+        }
+      }
+      if (securityKey == null)
+        throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("CannotFindMatchingCrypto", new object[1]{ (object) encryptionMethod }));
+      return securityKey.EncryptKey(encryptionMethod, keyToWrap);
+    }
+    
+    internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
+    {
+      if (reader == null)
+        throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+      byte[][] numArray1 = new byte[32][];
+      int length1 = 384;
+      int num1 = 0;
+      int length2 = 0;
+      while (true)
+      {
+        byte[] buffer = new byte[length1];
+        numArray1[num1++] = buffer;
+        int index = 0;
+        while (index < buffer.Length)
+        {
+          int num2 = reader.ReadContentAsBase64(buffer, index, buffer.Length - index);
+          if (num2 != 0)
+            index += num2;
+          else
+            break;
+        }
+        if ((long) length2 <= maxBufferSize - (long) index)
+        {
+          length2 += index;
+          if (index >= buffer.Length)
+            length1 *= 2;
+          else
+            goto label_11;
+        }
+        else
+          break;
+      }
+      throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new QuotaExceededException(SR.GetString("BufferQuotaExceededReadingBase64", new object[1]{ (object) maxBufferSize })));
+label_11:
+      byte[] numArray2 = new byte[length2];
+      int dstOffset = 0;
+      for (int index = 0; index < num1 - 1; ++index)
+      {
+        Buffer.BlockCopy((Array) numArray1[index], 0, (Array) numArray2, dstOffset, numArray1[index].Length);
+        dstOffset += numArray1[index].Length;
+      }
+      Buffer.BlockCopy((Array) numArray1[num1 - 1], 0, (Array) numArray2, dstOffset, length2 - dstOffset);
+      return numArray2;
+    }
+#endregion
+        
         public static DateTime MaxUtcDateTime
         {
             get
@@ -209,7 +284,6 @@ namespace System.IdentityModel
             return identity;
         }
 
-#if SUPPORTS_WINDOWSIDENTITY // NegotiateStream
         internal static WindowsIdentity CloneWindowsIdentityIfNecessary(WindowsIdentity wid)
         {
             return CloneWindowsIdentityIfNecessary(wid, wid.AuthenticationType);
@@ -245,7 +319,6 @@ namespace System.IdentityModel
                 return new WindowsIdentity(token);
             }
         }
-#endif // SUPPORTS_WINDOWSIDENTITY 
 
         internal static ClaimSet CloneClaimSetIfNecessary(ClaimSet claimSet)
         {

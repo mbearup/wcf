@@ -160,7 +160,7 @@ namespace System.ServiceModel.Channels
             return string.Format(MessageVersionToStringFormat, _envelope.ToString(), _addressing.ToString());
         }
 
-        internal bool IsMatch(MessageVersion messageVersion)
+        public bool IsMatch(MessageVersion messageVersion)
         {
             if (messageVersion == null)
             {

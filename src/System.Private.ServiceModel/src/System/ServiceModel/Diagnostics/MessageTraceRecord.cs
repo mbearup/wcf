@@ -10,7 +10,22 @@ using System.Xml;
 
 namespace System.ServiceModel.Diagnostics
 {
-    internal class MessageTraceRecord : TraceRecord
+    public class MessageTraceRecord : TraceRecord
     {
+        private string message;
+
+        public MessageTraceRecord(string _message)
+        {
+            this.message = _message;
+        }
+
+        public MessageTraceRecord(Message _message)
+        {
+            this.message = "";
+        }
+
+
+        public MessageTraceRecord()
+        {}
     }
 }

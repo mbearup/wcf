@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Net.Security;
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
+using System.IdentityModel.Tokens;
+using System.IdentityModel.Selectors;
 using System.Text;
 using System.Xml;
 
@@ -23,14 +25,21 @@ namespace System.ServiceModel.Channels
 
         private SupportingTokenParameters _endpointSupportingTokenParameters;
         private bool _includeTimestamp;
+        private bool supportsExtendedProtectionPolicy;
 
         private LocalClientSecuritySettings _localClientSettings;
+        private LocalServiceSecuritySettings _localServiceSettings;
 
         private MessageSecurityVersion _messageSecurityVersion;
         private SecurityHeaderLayout _securityHeaderLayout;
         private long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         private XmlDictionaryReaderQuotas _readerQuotas;
         private bool _protectTokens = defaultProtectTokens;
+#region fromwcf
+        internal static readonly SecurityAlgorithmSuite defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
+        private SecurityAlgorithmSuite _defaultAlgorithmSuite;
+        private SecurityKeyEntropyMode keyEntropyMode;
+#endregion
 
         internal SecurityBindingElement()
             : base()
@@ -40,6 +49,8 @@ namespace System.ServiceModel.Channels
             _localClientSettings = new LocalClientSecuritySettings();
             _endpointSupportingTokenParameters = new SupportingTokenParameters();
             _securityHeaderLayout = SecurityProtocolFactory.defaultSecurityHeaderLayout;
+            _localServiceSettings = new LocalServiceSecuritySettings();
+            _defaultAlgorithmSuite = SecurityBindingElement.defaultDefaultAlgorithmSuite;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -47,7 +58,6 @@ namespace System.ServiceModel.Channels
         {
             if (elementToBeCloned == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
-
             _includeTimestamp = elementToBeCloned._includeTimestamp;
             _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
@@ -55,7 +65,490 @@ namespace System.ServiceModel.Channels
             _localClientSettings = elementToBeCloned._localClientSettings.Clone();
             _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
             _readerQuotas = elementToBeCloned._readerQuotas;
+            _localServiceSettings = elementToBeCloned._localServiceSettings.Clone();
+            _defaultAlgorithmSuite = elementToBeCloned.DefaultAlgorithmSuite;
         }
+
+#region FromWCF
+    internal void ApplyAuditBehaviorSettings(BindingContext context, SecurityProtocolFactory factory)
+    {
+        Console.WriteLine("TODO - skipping ApplyAuditBehaviorSettings");
+    }
+    
+    public SecurityKeyEntropyMode KeyEntropyMode
+    {
+      get
+      {
+        return this.keyEntropyMode;
+      }
+      set
+      {
+        if (!SecurityKeyEntropyModeHelper.IsDefined(value))
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value"));
+        this.keyEntropyMode = value;
+      }
+    }
+    
+    private void SetPrivacyNoticeUriIfRequired(SecurityProtocolFactory factory, Binding binding)
+    {
+      PrivacyNoticeBindingElement noticeBindingElement = binding.CreateBindingElements().Find<PrivacyNoticeBindingElement>();
+      if (noticeBindingElement == null)
+        return;
+      factory.PrivacyNoticeUri = noticeBindingElement.Url;
+      factory.PrivacyNoticeVersion = noticeBindingElement.Version;
+    }
+    
+    public SecurityAlgorithmSuite DefaultAlgorithmSuite
+    {
+      get
+      {
+        return this._defaultAlgorithmSuite;
+      }
+      set
+      {
+        if (value == null)
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("value"));
+        this._defaultAlgorithmSuite = value;
+      }
+    }
+
+    internal bool SupportsExtendedProtectionPolicy
+    {
+      get
+      {
+        return this.supportsExtendedProtectionPolicy;
+      }
+      set
+      {
+        this.supportsExtendedProtectionPolicy = value;
+      }
+    }
+
+    public LocalServiceSecuritySettings LocalServiceSettings
+    {
+      get
+      {
+        return this._localServiceSettings;
+      }
+    }
+
+    internal void ConfigureProtocolFactory(SecurityProtocolFactory factory, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext, Binding binding)
+    {
+      if (factory == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("factory"));
+      if (credentialsManager == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("credentialsManager"));
+      factory.AddTimestamp = this.IncludeTimestamp;
+      factory.IncomingAlgorithmSuite = this.DefaultAlgorithmSuite;
+      factory.OutgoingAlgorithmSuite = this.DefaultAlgorithmSuite;
+      factory.SecurityHeaderLayout = this.SecurityHeaderLayout;
+      if (!isForService)
+      {
+        factory.TimestampValidityDuration = this.LocalClientSettings.TimestampValidityDuration;
+        factory.DetectReplays = this.LocalClientSettings.DetectReplays;
+        factory.MaxCachedNonces = this.LocalClientSettings.ReplayCacheSize;
+        factory.MaxClockSkew = this.LocalClientSettings.MaxClockSkew;
+        factory.ReplayWindow = this.LocalClientSettings.ReplayWindow;
+        if (this.LocalClientSettings.DetectReplays)
+          factory.NonceCache = this.LocalClientSettings.NonceCache;
+      }
+      else
+      {
+        factory.TimestampValidityDuration = this.LocalServiceSettings.TimestampValidityDuration;
+        factory.DetectReplays = this.LocalServiceSettings.DetectReplays;
+        factory.MaxCachedNonces = this.LocalServiceSettings.ReplayCacheSize;
+        factory.MaxClockSkew = this.LocalServiceSettings.MaxClockSkew;
+        factory.ReplayWindow = this.LocalServiceSettings.ReplayWindow;
+        if (this.LocalServiceSettings.DetectReplays)
+          factory.NonceCache = this.LocalServiceSettings.NonceCache;
+      }
+      factory.SecurityBindingElement = (SecurityBindingElement) this.Clone();
+      Console.WriteLine("Skipping SecurityBindingElement.SetIssuerBindingContextIfRequired");
+      // factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
+      factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
+      SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this._messageSecurityVersion.SecurityTokenVersion);
+      factory.StandardsManager = new SecurityStandardsManager(this._messageSecurityVersion, securityTokenSerializer);
+      if (isForService)
+        return;
+      this.SetPrivacyNoticeUriIfRequired(factory, binding);
+    }
+
+    internal abstract SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuanceBindingContext);
+
+    internal static ChannelProtectionRequirements ComputeProtectionRequirements(SecurityBindingElement security, BindingParameterCollection parameterCollection, BindingElementCollection bindingElements, bool isForService)
+    {
+      if (parameterCollection == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameterCollection");
+      if (bindingElements == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bindingElements");
+      if (security == null)
+        return (ChannelProtectionRequirements) null;
+      ChannelProtectionRequirements requirements = (ChannelProtectionRequirements) null;
+      Console.WriteLine("Skipping AsymmetricSecurityBindingElement because it's not supported");
+//      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
+      if (security is SymmetricSecurityBindingElement)
+      {
+        requirements = new ChannelProtectionRequirements();
+        ChannelProtectionRequirements protectionRequirements = parameterCollection.Find<ChannelProtectionRequirements>();
+        if (protectionRequirements != null)
+          requirements.Add(protectionRequirements);
+        Console.WriteLine("TODO - AddBindingProtectionRequirements");
+        // SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
+      }
+      return requirements;
+    }
+
+    public static SymmetricSecurityBindingElement CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      if (issuedTokenParameters == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuedTokenParameters");
+#if FEATURE_CORECLR
+      throw new NotImplementedException("X509SecurityTokenParameters not supported in .NET Core");
+#else
+      SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new X509SecurityTokenParameters(X509KeyIdentifierClauseType.Thumbprint, SecurityTokenInclusionMode.Never));
+      if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
+      }
+      else
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.Default;
+      }
+      securityBindingElement.RequireSignatureConfirmation = true;
+      return securityBindingElement;
+#endif
+    }
+
+    public static SymmetricSecurityBindingElement CreateIssuedTokenForSslBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      return SecurityBindingElement.CreateIssuedTokenForSslBindingElement(issuedTokenParameters, false);
+    }
+
+    public static SymmetricSecurityBindingElement CreateIssuedTokenForSslBindingElement(IssuedSecurityTokenParameters issuedTokenParameters, bool requireCancellation)
+    {
+      if (issuedTokenParameters == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuedTokenParameters");
+      SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new SslSecurityTokenParameters(false, requireCancellation));
+      if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
+      }
+      else
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.Default;
+      }
+      securityBindingElement.RequireSignatureConfirmation = true;
+      return securityBindingElement;
+    }
+
+    public static TransportSecurityBindingElement CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      if (issuedTokenParameters == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuedTokenParameters");
+      issuedTokenParameters.RequireDerivedKeys = false;
+      TransportSecurityBindingElement securityBindingElement = new TransportSecurityBindingElement();
+      if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.Signed.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
+      }
+      else
+      {
+        securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) issuedTokenParameters);
+        securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.Default;
+      }
+      securityBindingElement.LocalClientSettings.DetectReplays = false;
+      securityBindingElement.LocalServiceSettings.DetectReplays = false;
+      securityBindingElement.IncludeTimestamp = true;
+      return securityBindingElement;
+    }
+
+    public static bool IsIssuedTokenForSslBinding(SecurityBindingElement sbe, out IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      return SecurityBindingElement.IsIssuedTokenForSslBinding(sbe, false, out issuedTokenParameters);
+    }
+
+    public static bool IsIssuedTokenForSslBinding(SecurityBindingElement sbe, bool requireCancellation, out IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      issuedTokenParameters = (IssuedSecurityTokenParameters) null;
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null || !securityBindingElement.RequireSignatureConfirmation)
+        return false;
+      SslSecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as SslSecurityTokenParameters;
+      if (protectionTokenParameters == null || protectionTokenParameters.RequireClientCertificate || protectionTokenParameters.RequireCancellation != requireCancellation)
+        return false;
+      SupportingTokenParameters supportingTokenParameters = securityBindingElement.EndpointSupportingTokenParameters;
+      if (supportingTokenParameters.Signed.Count != 0 || supportingTokenParameters.SignedEncrypted.Count == 0 && supportingTokenParameters.Endorsing.Count == 0 || supportingTokenParameters.SignedEndorsing.Count != 0)
+        return false;
+      if (supportingTokenParameters.SignedEncrypted.Count == 1 && supportingTokenParameters.Endorsing.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.SignedEncrypted[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.BearerKey)
+          return false;
+      }
+      else if (supportingTokenParameters.Endorsing.Count == 1 && supportingTokenParameters.SignedEncrypted.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.Endorsing[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.SymmetricKey && issuedTokenParameters.KeyType != SecurityKeyType.AsymmetricKey)
+          return false;
+      }
+      return issuedTokenParameters != null;
+    }
+
+    public static bool IsIssuedTokenOverTransportBinding(SecurityBindingElement sbe, out IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      issuedTokenParameters = (IssuedSecurityTokenParameters) null;
+      if (!(sbe is TransportSecurityBindingElement) || !sbe.IncludeTimestamp)
+        return false;
+      SupportingTokenParameters supportingTokenParameters = sbe.EndpointSupportingTokenParameters;
+      if (supportingTokenParameters.SignedEncrypted.Count != 0 || supportingTokenParameters.Signed.Count == 0 && supportingTokenParameters.Endorsing.Count == 0 || supportingTokenParameters.SignedEndorsing.Count != 0)
+        return false;
+      if (supportingTokenParameters.Signed.Count == 1 && supportingTokenParameters.Endorsing.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.Signed[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.BearerKey)
+          return false;
+      }
+      else if (supportingTokenParameters.Endorsing.Count == 1 && supportingTokenParameters.Signed.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.Endorsing[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.SymmetricKey && issuedTokenParameters.KeyType != SecurityKeyType.AsymmetricKey)
+          return false;
+      }
+      return issuedTokenParameters != null && !issuedTokenParameters.RequireDerivedKeys;
+    }
+
+    public static bool IsIssuedTokenForCertificateBinding(SecurityBindingElement sbe, out IssuedSecurityTokenParameters issuedTokenParameters)
+    {
+      issuedTokenParameters = (IssuedSecurityTokenParameters) null;
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null || !securityBindingElement.RequireSignatureConfirmation)
+        return false;
+#if FEATURE_CORECLR
+      throw new NotImplementedException("X509SecurityTokenParameters not implemented in .NET Core");
+#else
+      X509SecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as X509SecurityTokenParameters;
+      if (protectionTokenParameters == null || protectionTokenParameters.X509ReferenceStyle != X509KeyIdentifierClauseType.Thumbprint || protectionTokenParameters.InclusionMode != SecurityTokenInclusionMode.Never)
+        return false;
+      SupportingTokenParameters supportingTokenParameters = securityBindingElement.EndpointSupportingTokenParameters;
+      if (supportingTokenParameters.Signed.Count != 0 || supportingTokenParameters.SignedEncrypted.Count == 0 && supportingTokenParameters.Endorsing.Count == 0 || supportingTokenParameters.SignedEndorsing.Count != 0)
+        return false;
+      if (supportingTokenParameters.SignedEncrypted.Count == 1 && supportingTokenParameters.Endorsing.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.SignedEncrypted[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.BearerKey)
+          return false;
+      }
+      else if (supportingTokenParameters.Endorsing.Count == 1 && supportingTokenParameters.SignedEncrypted.Count == 0)
+      {
+        issuedTokenParameters = supportingTokenParameters.Endorsing[0] as IssuedSecurityTokenParameters;
+        if (issuedTokenParameters != null && issuedTokenParameters.KeyType != SecurityKeyType.SymmetricKey && issuedTokenParameters.KeyType != SecurityKeyType.AsymmetricKey)
+          return false;
+      }
+      return issuedTokenParameters != null;
+#endif
+   }
+
+    public static SymmetricSecurityBindingElement CreateKerberosBindingElement()
+    {
+      throw new NotImplementedException("KerberosSecurityTokenParameters not supported in .NET Core");
+      // SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new KerberosSecurityTokenParameters());
+      // securityBindingElement.DefaultAlgorithmSuite = SecurityAlgorithmSuite.KerberosDefault;
+      // return securityBindingElement;
+    }
+
+    public static SymmetricSecurityBindingElement CreateSslNegotiationBindingElement(bool requireClientCertificate)
+    {
+      return SecurityBindingElement.CreateSslNegotiationBindingElement(requireClientCertificate, false);
+    }
+
+    public static SymmetricSecurityBindingElement CreateSslNegotiationBindingElement(bool requireClientCertificate, bool requireCancellation)
+    {
+      throw new NotImplementedException("SslSecurityTokenParameters not supported in .NET Core");
+      // return new SymmetricSecurityBindingElement((SecurityTokenParameters) new SslSecurityTokenParameters(requireClientCertificate, requireCancellation));
+    }
+
+    public static SymmetricSecurityBindingElement CreateSspiNegotiationBindingElement()
+    {
+      return SecurityBindingElement.CreateSspiNegotiationBindingElement(false);
+    }
+
+    public static SymmetricSecurityBindingElement CreateSspiNegotiationBindingElement(bool requireCancellation)
+    {
+      return new SymmetricSecurityBindingElement((SecurityTokenParameters) new SspiSecurityTokenParameters(requireCancellation));
+    }
+
+    public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement()
+    {
+      return SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
+    }
+
+    public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
+    {
+      TransportSecurityBindingElement securityBindingElement = new TransportSecurityBindingElement();
+      SspiSecurityTokenParameters securityTokenParameters = new SspiSecurityTokenParameters(requireCancellation);
+      securityTokenParameters.RequireDerivedKeys = false;
+      securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) securityTokenParameters);
+      securityBindingElement.IncludeTimestamp = true;
+      securityBindingElement.LocalClientSettings.DetectReplays = false;
+      securityBindingElement.LocalServiceSettings.DetectReplays = false;
+      securityBindingElement.SupportsExtendedProtectionPolicy = true;
+      return securityBindingElement;
+    }
+
+    public static SymmetricSecurityBindingElement CreateUserNameForCertificateBindingElement()
+    {
+      throw new NotImplementedException("X509SecurityTokenParameters not supported in .NET Core");
+      // SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new X509SecurityTokenParameters(X509KeyIdentifierClauseType.Thumbprint, SecurityTokenInclusionMode.Never));
+      // securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted.Add((SecurityTokenParameters) new UserNameSecurityTokenParameters());
+      // securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+      // return securityBindingElement;
+    }
+
+    public static SymmetricSecurityBindingElement CreateUserNameForSslBindingElement()
+    {
+      return SecurityBindingElement.CreateUserNameForSslBindingElement(false);
+    }
+
+    public static SymmetricSecurityBindingElement CreateUserNameForSslBindingElement(bool requireCancellation)
+    {
+      throw new NotImplementedException("SslSecurityTokenParameters not supported in .NET Core");
+      // SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new SslSecurityTokenParameters(false, requireCancellation));
+      // securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted.Add((SecurityTokenParameters) new UserNameSecurityTokenParameters());
+      // securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+      // return securityBindingElement;
+    }
+
+    public static bool IsAnonymousForCertificateBinding(SecurityBindingElement sbe)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null || !securityBindingElement.RequireSignatureConfirmation)
+        return false;
+      throw new NotImplementedException("X509SecurityTokenParameters not implemented in .NET Core");
+      // X509SecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as X509SecurityTokenParameters;
+      // return protectionTokenParameters != null && protectionTokenParameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Thumbprint && (protectionTokenParameters.InclusionMode == SecurityTokenInclusionMode.Never && sbe.EndpointSupportingTokenParameters.IsEmpty());
+    }
+
+    public static SymmetricSecurityBindingElement CreateAnonymousForCertificateBindingElement()
+    {
+      throw new NotImplementedException("X509SecurityTokenParameters is not supported in .NET Core 1.0");
+      // SymmetricSecurityBindingElement securityBindingElement = new SymmetricSecurityBindingElement((SecurityTokenParameters) new X509SecurityTokenParameters(X509KeyIdentifierClauseType.Thumbprint, SecurityTokenInclusionMode.Never));
+      // securityBindingElement.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+      // securityBindingElement.RequireSignatureConfirmation = true;
+      // return securityBindingElement;
+    }
+
+    public static bool IsUserNameForSslBinding(SecurityBindingElement sbe, bool requireCancellation)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null)
+        return false;
+      SupportingTokenParameters supportingTokenParameters = sbe.EndpointSupportingTokenParameters;
+      if (supportingTokenParameters.Signed.Count != 0 || supportingTokenParameters.SignedEncrypted.Count != 1 || (supportingTokenParameters.Endorsing.Count != 0 || supportingTokenParameters.SignedEndorsing.Count != 0) || !(supportingTokenParameters.SignedEncrypted[0] is UserNameSecurityTokenParameters))
+        return false;
+      throw new NotImplementedException("SslSecurityTokenParameters not implemented in .NET Core");
+      // SslSecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as SslSecurityTokenParameters;
+      // if (protectionTokenParameters == null || protectionTokenParameters.RequireCancellation != requireCancellation)
+      //   return false;
+      // return !protectionTokenParameters.RequireClientCertificate;
+    }
+
+    public static bool IsUserNameForCertificateBinding(SecurityBindingElement sbe)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null)
+        return false;
+      // X509SecurityTokenParameters is not supported in .NET Core
+      // X509SecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as X509SecurityTokenParameters;
+      // if (protectionTokenParameters == null || protectionTokenParameters.X509ReferenceStyle != X509KeyIdentifierClauseType.Thumbprint || protectionTokenParameters.InclusionMode != SecurityTokenInclusionMode.Never)
+      //   return false;
+      SupportingTokenParameters supportingTokenParameters = sbe.EndpointSupportingTokenParameters;
+      return supportingTokenParameters.Signed.Count == 0 && supportingTokenParameters.SignedEncrypted.Count == 1 && (supportingTokenParameters.Endorsing.Count == 0 && supportingTokenParameters.SignedEndorsing.Count == 0) && supportingTokenParameters.SignedEncrypted[0] is UserNameSecurityTokenParameters;
+    }
+
+    public static bool IsSspiNegotiationBinding(SecurityBindingElement sbe, bool requireCancellation)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null || !sbe.EndpointSupportingTokenParameters.IsEmpty())
+        return false;
+      throw new NotImplementedException("SspiSecurityTokenParameters are not supported in .NET Core");
+      // SspiSecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as SspiSecurityTokenParameters;
+      // if (protectionTokenParameters == null)
+      //   return false;
+      // return protectionTokenParameters.RequireCancellation == requireCancellation;
+    }
+
+    public static bool IsSspiNegotiationOverTransportBinding(SecurityBindingElement sbe, bool requireCancellation)
+    {
+      if (!sbe.IncludeTimestamp)
+        return false;
+      SupportingTokenParameters supportingTokenParameters = sbe.EndpointSupportingTokenParameters;
+      if (supportingTokenParameters.Signed.Count != 0 || supportingTokenParameters.SignedEncrypted.Count != 0 || (supportingTokenParameters.Endorsing.Count != 1 || supportingTokenParameters.SignedEndorsing.Count != 0))
+        return false;
+      throw new NotImplementedException("SspiSecurityTokenParameters are not supported in .NET Core");
+      // SspiSecurityTokenParameters securityTokenParameters = supportingTokenParameters.Endorsing[0] as SspiSecurityTokenParameters;
+      // return securityTokenParameters != null && !securityTokenParameters.RequireDerivedKeys && (securityTokenParameters.RequireCancellation == requireCancellation && sbe is TransportSecurityBindingElement);
+    }
+
+    public static bool IsSslNegotiationBinding(SecurityBindingElement sbe, bool requireClientCertificate, bool requireCancellation)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement == null || !sbe.EndpointSupportingTokenParameters.IsEmpty())
+        return false;
+      throw new NotImplementedException("SslSecurityTokenParameters are not supported in .NET Core");
+      // SslSecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as SslSecurityTokenParameters;
+      // if (protectionTokenParameters == null || protectionTokenParameters.RequireClientCertificate != requireClientCertificate)
+      //   return false;
+      // return protectionTokenParameters.RequireCancellation == requireCancellation;
+    }
+
+    public static bool IsSecureConversationBinding(SecurityBindingElement sbe, out SecurityBindingElement bootstrapSecurity)
+    {
+      return SecurityBindingElement.IsSecureConversationBinding(sbe, true, out bootstrapSecurity);
+    }
+
+    public static bool IsSecureConversationBinding(SecurityBindingElement sbe, bool requireCancellation, out SecurityBindingElement bootstrapSecurity)
+    {
+      bootstrapSecurity = (SecurityBindingElement) null;
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      if (securityBindingElement != null)
+      {
+        if (securityBindingElement.RequireSignatureConfirmation)
+          return false;
+        SecureConversationSecurityTokenParameters protectionTokenParameters = securityBindingElement.ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
+        if (protectionTokenParameters == null || protectionTokenParameters.RequireCancellation != requireCancellation)
+          return false;
+        bootstrapSecurity = protectionTokenParameters.BootstrapSecurityBindingElement;
+      }
+      else
+      {
+        if (!sbe.IncludeTimestamp || !(sbe is TransportSecurityBindingElement))
+          return false;
+        SupportingTokenParameters supportingTokenParameters = sbe.EndpointSupportingTokenParameters;
+        if (supportingTokenParameters.Signed.Count != 0 || supportingTokenParameters.SignedEncrypted.Count != 0 || (supportingTokenParameters.Endorsing.Count != 1 || supportingTokenParameters.SignedEndorsing.Count != 0))
+          return false;
+        SecureConversationSecurityTokenParameters securityTokenParameters = supportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
+        if (securityTokenParameters == null || securityTokenParameters.RequireCancellation != requireCancellation)
+          return false;
+        bootstrapSecurity = securityTokenParameters.BootstrapSecurityBindingElement;
+      }
+      if (bootstrapSecurity != null && bootstrapSecurity.SecurityHeaderLayout != SecurityHeaderLayout.Strict)
+        return false;
+      return bootstrapSecurity != null;
+    }
+
+    public static bool IsKerberosBinding(SecurityBindingElement sbe)
+    {
+      SymmetricSecurityBindingElement securityBindingElement = sbe as SymmetricSecurityBindingElement;
+      throw new NotImplementedException("KerberosSecurityTokenParameters is not supported in .NET Core");
+      // return securityBindingElement != null && securityBindingElement.ProtectionTokenParameters is KerberosSecurityTokenParameters && sbe.EndpointSupportingTokenParameters.IsEmpty();
+    }
+
+#endregion
 
         public SupportingTokenParameters EndpointSupportingTokenParameters
         {
@@ -345,7 +838,7 @@ namespace System.ServiceModel.Channels
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic
-        internal static bool IsMutualCertificateBinding(SecurityBindingElement sbe)
+        public static bool IsMutualCertificateBinding(SecurityBindingElement sbe)
         {
             return IsMutualCertificateBinding(sbe, false);
         }
@@ -389,7 +882,7 @@ namespace System.ServiceModel.Channels
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic
-        internal static bool IsUserNameOverTransportBinding(SecurityBindingElement sbe)
+        public static bool IsUserNameOverTransportBinding(SecurityBindingElement sbe)
         {
             // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
             if (!sbe.IncludeTimestamp)
@@ -422,7 +915,7 @@ namespace System.ServiceModel.Channels
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic
-        internal static bool IsCertificateOverTransportBinding(SecurityBindingElement sbe)
+        public static bool IsCertificateOverTransportBinding(SecurityBindingElement sbe)
         {
             // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
             if (!sbe.IncludeTimestamp)
@@ -440,9 +933,28 @@ namespace System.ServiceModel.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
+        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool option = true, ChannelProtectionRequirements bootstrapProtectionRequirements = null)
         {
-            throw ExceptionHelper.PlatformNotSupported("SecurityBindingElement.CreateSecureConversatationBindingElement is not supported.");
+            if (bootstrapSecurity == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bootstrapBinding");
+            SecurityBindingElement securityBindingElement1;
+            if (bootstrapSecurity is TransportSecurityBindingElement)
+            {
+                TransportSecurityBindingElement securityBindingElement2 = new TransportSecurityBindingElement();
+                SecureConversationSecurityTokenParameters securityTokenParameters = new SecureConversationSecurityTokenParameters(bootstrapSecurity, option, bootstrapProtectionRequirements);
+                securityTokenParameters.RequireDerivedKeys = false;
+                securityBindingElement2.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) securityTokenParameters);
+                securityBindingElement2.LocalClientSettings.DetectReplays = false;
+                securityBindingElement2.LocalServiceSettings.DetectReplays = false;
+                securityBindingElement2.IncludeTimestamp = true;
+                securityBindingElement1 = (SecurityBindingElement) securityBindingElement2;
+            }
+            else
+            securityBindingElement1 = (SecurityBindingElement) new SymmetricSecurityBindingElement((SecurityTokenParameters) new SecureConversationSecurityTokenParameters(bootstrapSecurity, option, bootstrapProtectionRequirements))
+            {
+                RequireSignatureConfirmation = false
+            };
+            return securityBindingElement1;
         }
 
         public override string ToString()

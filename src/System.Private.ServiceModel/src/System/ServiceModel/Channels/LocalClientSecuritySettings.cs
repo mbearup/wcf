@@ -286,6 +286,8 @@ namespace System.ServiceModel.Channels
             this.ReplayWindow = SecurityProtocolFactory.defaultReplayWindow;
             this.MaxClockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
             this.TimestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
+            this.SessionKeyRenewalInterval = TimeSpan.Parse("10:00:00");
+            this.SessionKeyRolloverInterval = TimeSpan.Parse("00:05:00");
         }
 
         public LocalClientSecuritySettings Clone()

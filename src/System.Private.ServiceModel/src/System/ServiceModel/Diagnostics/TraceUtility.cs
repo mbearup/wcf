@@ -44,6 +44,27 @@ namespace System.ServiceModel.Diagnostics
             }
         }
 
+#region fromwcf
+    internal static InputQueue<T> CreateInputQueue<T>() where T : class
+    {
+#if FEATURE_CORECLR
+      return new InputQueue<T>();
+#else
+      if (TraceUtility.asyncCallbackGenerator == null)
+        TraceUtility.asyncCallbackGenerator = new Func<Action<AsyncCallback, IAsyncResult>>(TraceUtility.CallbackGenerator);
+      return new InputQueue<T>(TraceUtility.asyncCallbackGenerator)
+      {
+        DisposeItemCallback = (Action<T>) (value =>
+        {
+          if (!((object) value is ICommunicationObject))
+            return;
+          ((ICommunicationObject) (object) value).Abort();
+        })
+      };
+#endif
+    }
+#endregion
+
         static internal void AddAmbientActivityToMessage(Message message)
         {
             try

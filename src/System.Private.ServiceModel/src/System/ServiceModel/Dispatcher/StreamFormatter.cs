@@ -14,7 +14,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class StreamFormatter
+    public class StreamFormatter
     {
         private string _wrapperName;
         private string _wrapperNS;

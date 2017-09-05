@@ -143,7 +143,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal bool CanRecycle
+        public bool CanRecycle
         {
             get { return _headers.Length <= MaxRecycledArrayLength; }
         }
@@ -1083,7 +1083,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal Collection<MessageHeaderInfo> GetHeadersNotUnderstood()
+        public Collection<MessageHeaderInfo> GetHeadersNotUnderstood()
         {
             Collection<MessageHeaderInfo> notUnderstoodHeaders = null;
 
@@ -1357,7 +1357,7 @@ namespace System.ServiceModel.Channels
             AddHeader(new Header(kind, info, processing));
         }
 
-        internal void Recycle(HeaderInfoCache headerInfoCache)
+        public void Recycle(HeaderInfoCache headerInfoCache)
         {
             for (int i = 0; i < _headerCount; i++)
             {

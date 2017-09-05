@@ -16,6 +16,9 @@ namespace System.IdentityModel.Selectors
         private X509Certificate2 _certificate;
         private bool _clone;
 
+        public X509SecurityTokenProvider(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue)
+        {}
+
         public X509SecurityTokenProvider(X509Certificate2 certificate) : this(certificate, true) { }
 
         internal X509SecurityTokenProvider(X509Certificate2 certificate, bool clone)

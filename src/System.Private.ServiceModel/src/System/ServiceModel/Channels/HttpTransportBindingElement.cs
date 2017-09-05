@@ -190,7 +190,7 @@ namespace System.ServiceModel.Channels
 #endif // !FEATURE_NETNATIVE
 
         // MB#26970: used by MEX to ensure that we don't conflict on base-address scoped settings
-        internal bool InheritBaseAddressSettings
+        public bool InheritBaseAddressSettings
         {
             get
             {
@@ -271,7 +271,7 @@ namespace System.ServiceModel.Channels
         }
 
         // string.Empty == wildcard
-        internal string Method
+       public string Method
         {
             get
             {
@@ -430,6 +430,7 @@ namespace System.ServiceModel.Channels
             {
                 return _useDefaultWebProxy;
             }
+
             set
             {
                 _useDefaultWebProxy = value;
@@ -542,7 +543,7 @@ namespace System.ServiceModel.Channels
             return (IChannelFactory<TChannel>)(object)new HttpChannelFactory<TChannel>(this, context);
         }
 
-        internal override bool IsMatch(BindingElement b)
+        public override bool IsMatch(BindingElement b)
         {
             if (!base.IsMatch(b))
                 return false;

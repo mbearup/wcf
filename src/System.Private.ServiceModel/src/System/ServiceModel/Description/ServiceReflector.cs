@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace System.ServiceModel.Description
 {
-    internal static class NamingHelper
+    public static class NamingHelper
     {
         internal const string DefaultNamespace = "http://tempuri.org/";
         internal const string DefaultServiceName = "service";
@@ -158,7 +158,7 @@ namespace System.ServiceModel.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SFXUnvalidNamespaceValue, ns, propName));
         }
 
-        internal static void CheckUriParameter(string ns, string paramName)
+        public static void CheckUriParameter(string ns, string paramName)
         {
             Uri uri;
             if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out uri))
@@ -166,7 +166,7 @@ namespace System.ServiceModel.Description
         }
 
         // Converts names that contain characters that are not permitted in XML names to valid names.
-        internal static string XmlName(string name)
+        public static string XmlName(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return name;
@@ -178,7 +178,7 @@ namespace System.ServiceModel.Description
         }
 
         // Transforms an XML name into an object name.
-        internal static string CodeName(string name)
+        public static string CodeName(string name)
         {
             return XmlConvert.DecodeName(name);
         }
@@ -221,7 +221,7 @@ namespace System.ServiceModel.Description
         }
     }
 
-    internal class XmlName
+    public class XmlName
     {
         private string _decoded;
         private string _encoded;
@@ -342,7 +342,7 @@ namespace System.ServiceModel.Description
         }
     }
 
-    static internal class ServiceReflector
+    static public class ServiceReflector
     {
         internal const string BeginMethodNamePrefix = "Begin";
         internal const string EndMethodNamePrefix = "End";
@@ -444,12 +444,12 @@ namespace System.ServiceModel.Description
             return types;
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
+        static public object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
         {
             return GetCustomAttributes(attrProvider, attrType, false);
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
+        static public object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
         {
             try
             {
@@ -690,7 +690,7 @@ namespace System.ServiceModel.Description
         }
 
         // for async method is the begin method
-        static internal ParameterInfo[] GetInputParameters(MethodInfo method, bool asyncPattern)
+        static public ParameterInfo[] GetInputParameters(MethodInfo method, bool asyncPattern)
         {
             int count = 0;
             ParameterInfo[] parameters = method.GetParameters();
@@ -726,7 +726,7 @@ namespace System.ServiceModel.Description
         }
 
         // for async method is the end method
-        static internal ParameterInfo[] GetOutputParameters(MethodInfo method, bool asyncPattern)
+        static public ParameterInfo[] GetOutputParameters(MethodInfo method, bool asyncPattern)
         {
             int count = 0;
             ParameterInfo[] parameters = method.GetParameters();

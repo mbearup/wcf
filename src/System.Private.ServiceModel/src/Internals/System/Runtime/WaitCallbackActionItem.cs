@@ -5,8 +5,8 @@
 
 namespace System.Runtime
 {
-    internal static class WaitCallbackActionItem
+    public static class WaitCallbackActionItem
     {
-        internal static bool ShouldUseActivity { get; set; }
+        public static bool ShouldUseActivity { get; set; }
     }
 }

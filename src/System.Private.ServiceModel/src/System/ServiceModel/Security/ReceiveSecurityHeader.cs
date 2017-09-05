@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Security
 {
-    internal abstract class ReceiveSecurityHeader : SecurityHeader
+    public abstract class ReceiveSecurityHeader : SecurityHeader
     {
         protected ReceiveSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,

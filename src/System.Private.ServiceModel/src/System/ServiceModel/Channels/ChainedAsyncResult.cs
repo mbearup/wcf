@@ -8,10 +8,10 @@ using System.Runtime;
 
 namespace System.ServiceModel.Channels
 {
-    internal delegate IAsyncResult ChainedBeginHandler(TimeSpan timeout, AsyncCallback asyncCallback, object state);
-    internal delegate void ChainedEndHandler(IAsyncResult result);
+    public delegate IAsyncResult ChainedBeginHandler(TimeSpan timeout, AsyncCallback asyncCallback, object state);
+    public delegate void ChainedEndHandler(IAsyncResult result);
 
-    internal class ChainedAsyncResult : AsyncResult
+    public class ChainedAsyncResult : AsyncResult
     {
         private ChainedBeginHandler _begin2;
         private ChainedEndHandler _end1;
@@ -126,7 +126,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class ChainedCloseAsyncResult : ChainedAsyncResult
+    public class ChainedCloseAsyncResult : ChainedAsyncResult
     {
         private IList<ICommunicationObject> _collection;
 
@@ -161,7 +161,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class ChainedOpenAsyncResult : ChainedAsyncResult
+    public class ChainedOpenAsyncResult : ChainedAsyncResult
     {
         private IList<ICommunicationObject> _collection;
 

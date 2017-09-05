@@ -110,7 +110,7 @@ namespace System.ServiceModel
 
         public abstract SecurityPolicyVersion SecurityPolicyVersion { get; }
         public abstract BasicSecurityProfileVersion BasicSecurityProfileVersion { get; }
-        internal abstract MessageSecurityTokenVersion MessageSecurityTokenVersion { get; }
+        public abstract MessageSecurityTokenVersion MessageSecurityTokenVersion { get; }
 
         internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
         {
@@ -126,7 +126,7 @@ namespace System.ServiceModel
                 get { return null; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005; }
             }
@@ -156,7 +156,7 @@ namespace System.ServiceModel
                 get { return BasicSecurityProfileVersion.BasicSecurityProfile10; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10; }
             }
@@ -191,7 +191,7 @@ namespace System.ServiceModel
                 get { return BasicSecurityProfileVersion.BasicSecurityProfile10; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10; }
             }
@@ -221,7 +221,7 @@ namespace System.ServiceModel
                 get { return null; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity10WSTrust13WSSecureConversation13BasicSecurityProfile10; }
             }
@@ -251,7 +251,7 @@ namespace System.ServiceModel
                 get { return null; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity11WSTrust13WSSecureConversation13; }
             }
@@ -281,7 +281,7 @@ namespace System.ServiceModel
                 get { return null; }
             }
 
-            internal override MessageSecurityTokenVersion MessageSecurityTokenVersion
+            public override MessageSecurityTokenVersion MessageSecurityTokenVersion
             {
                 get { return MessageSecurityTokenVersion.WSSecurity11WSTrust13WSSecureConversation13BasicSecurityProfile10; }
             }

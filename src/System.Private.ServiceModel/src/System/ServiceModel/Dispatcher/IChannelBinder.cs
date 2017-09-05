@@ -7,7 +7,7 @@ using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal interface IChannelBinder
+    public interface IChannelBinder
     {
         IChannel Channel { get; }
         bool HasSession { get; }

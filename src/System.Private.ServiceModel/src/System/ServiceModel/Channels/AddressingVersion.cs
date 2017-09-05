@@ -23,6 +23,19 @@ namespace System.ServiceModel.Channels
         private const string AddressingNoneToStringFormat = "AddressingNone ({0})";
         private const string Addressing10ToStringFormat = "Addressing10 ({0})";
 
+#region Fromwcf
+//         private static AddressingVersion addressing200408 = new AddressingVersion("http://schemas.xmlsoap.org/ws/2004/08/addressing", XD.Addressing200408Dictionary.Namespace, "Addressing200408ToStringFormat", AddressingVersion.Addressing200408SignedMessageParts, "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous", XD.Addressing200408Dictionary.Anonymous, (string) null, "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault", "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault");
+
+        public static AddressingVersion WSAddressingAugust2004
+        {
+          get
+          {
+             throw new NotImplementedException("WSAddressingAugust2004 not implemented in .NET Core");
+//             return AddressingVersion.addressing200408;
+          }
+        }
+#endregion
+
         private static AddressingVersion s_none = new AddressingVersion(AddressingNoneStrings.Namespace, XD.AddressingNoneDictionary.Namespace,
             AddressingNoneToStringFormat, new MessagePartSpecification(), null, null, null, null, null);
 
@@ -68,7 +81,7 @@ namespace System.ServiceModel.Channels
             get { return s_none; }
         }
 
-        internal string Namespace
+        public string Namespace
         {
             get { return _ns; }
         }
@@ -97,22 +110,22 @@ namespace System.ServiceModel.Channels
         }
 
 
-        internal XmlDictionaryString DictionaryNamespace
+        public XmlDictionaryString DictionaryNamespace
         {
             get { return _dictionaryNs; }
         }
 
-        internal string Anonymous
+        public string Anonymous
         {
             get { return _anonymous; }
         }
 
-        internal XmlDictionaryString DictionaryAnonymous
+        public XmlDictionaryString DictionaryAnonymous
         {
             get { return _dictionaryAnonymous; }
         }
 
-        internal Uri AnonymousUri
+        public Uri AnonymousUri
         {
             get { return _anonymousUri; }
         }
@@ -122,17 +135,17 @@ namespace System.ServiceModel.Channels
             get { return _noneUri; }
         }
 
-        internal string FaultAction   // the action for addressing faults
+        public string FaultAction   // the action for addressing faults
         {
             get { return _faultAction; }
         }
 
-        internal string DefaultFaultAction  // a default string that can be used for non-addressing faults
+        public string DefaultFaultAction  // a default string that can be used for non-addressing faults
         {
             get { return _defaultFaultAction; }
         }
 
-        internal MessagePartSpecification SignedMessageParts
+        public MessagePartSpecification SignedMessageParts
         {
             get
             {

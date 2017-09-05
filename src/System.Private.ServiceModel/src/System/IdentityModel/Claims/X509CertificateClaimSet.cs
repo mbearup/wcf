@@ -28,7 +28,7 @@ namespace System.IdentityModel.Claims
         {
         }
 
-        internal X509CertificateClaimSet(X509Certificate2 certificate, bool clone)
+        public X509CertificateClaimSet(X509Certificate2 certificate, bool clone)
         {
             if (certificate == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
@@ -197,11 +197,7 @@ namespace System.IdentityModel.Claims
 
             value = _certificate.GetNameInfo(X509NameType.UpnName, false);
             if (!string.IsNullOrEmpty(value))
-#if SUPPORTS_WINDOWSIDENTITY
                 claims.Add(Claim.CreateUpnClaim(value));
-#else
-                throw ExceptionHelper.PlatformNotSupported();
-#endif // SUPPORTS_WINDOWSIDENTITY
 
             value = _certificate.GetNameInfo(X509NameType.UrlName, false);
             if (!string.IsNullOrEmpty(value))

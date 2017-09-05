@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IdentityModel;
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
 using System.IdentityModel.Selectors;
@@ -18,6 +19,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
 using System.ServiceModel.Diagnostics;
 using System.ServiceModel.Security.Tokens;
 using System.Text;
@@ -238,6 +240,211 @@ namespace System.ServiceModel.Security
             }
         }
 
+#region Fromwcf
+
+    public static SecurityBindingElement GetIssuerSecurityBindingElement(ServiceModelSecurityTokenRequirement requirement)
+    {
+      SecurityBindingElement securityBindingElement = requirement.SecureConversationSecurityBindingElement;
+      if (securityBindingElement != null)
+        return securityBindingElement;
+      Binding issuerBinding = requirement.IssuerBinding;
+      if (issuerBinding == null)
+        throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("IssuerBindingNotPresentInTokenRequirement", new object[1]{ (object) requirement }));
+      return issuerBinding.CreateBindingElements().Find<SecurityBindingElement>();
+    }
+
+    internal static System.IdentityModel.SafeFreeCredentials GetCredentialsHandle(string package, NetworkCredential credential, bool isServer, params string[] additionalPackages)
+    {
+      System.IdentityModel.CredentialUse intent = isServer ? System.IdentityModel.CredentialUse.Inbound : System.IdentityModel.CredentialUse.Outbound;
+      System.IdentityModel.SafeFreeCredentials safeFreeCredentials;
+      if (credential == null || SecurityUtils.NetworkCredentialHelper.IsDefault(credential))
+      {
+        AuthIdentityEx authdata = new AuthIdentityEx((string) null, (string) null, (string) null, additionalPackages);
+        safeFreeCredentials = SspiWrapper.AcquireCredentialsHandle(package, intent, ref authdata);
+      }
+      else
+      {
+        SecurityUtils.FixNetworkCredential(ref credential);
+        AuthIdentityEx authdata = new AuthIdentityEx(credential.UserName, credential.Password, credential.Domain, new string[0]);
+        safeFreeCredentials = SspiWrapper.AcquireCredentialsHandle(package, intent, ref authdata);
+      }
+      return safeFreeCredentials;
+    }
+    
+    internal static System.IdentityModel.SafeFreeCredentials GetCredentialsHandle(SecurityBindingElement sbe, BindingContext context)
+    {
+      ClientCredentials clientCredentials = context == null ? (ClientCredentials) null : context.BindingParameters.Find<ClientCredentials>();
+      return SecurityUtils.GetCredentialsHandle(sbe, clientCredentials);
+    }
+
+    internal static System.IdentityModel.SafeFreeCredentials GetCredentialsHandle(SecurityBindingElement sbe, ClientCredentials clientCredentials)
+    {
+      if (sbe == null)
+        return (System.IdentityModel.SafeFreeCredentials) null;
+      bool flag1 = false;
+      bool flag2 = false;
+      foreach (SecurityTokenParameters securityTokenParameters in new SecurityTokenParametersEnumerable(sbe, true))
+      {
+        if (securityTokenParameters is SecureConversationSecurityTokenParameters)
+        {
+          System.IdentityModel.SafeFreeCredentials credentialsHandle = SecurityUtils.GetCredentialsHandle(((SecureConversationSecurityTokenParameters) securityTokenParameters).BootstrapSecurityBindingElement, clientCredentials);
+          if (credentialsHandle != null)
+            return credentialsHandle;
+        }
+        else if (securityTokenParameters is IssuedSecurityTokenParameters)
+        {
+#if FEATURE_CORECLR
+          throw new NotImplementedException("Need to implement GetCredentialsHandle(binding, clientCredentials)");
+#else
+          System.IdentityModel.SafeFreeCredentials credentialsHandle = SecurityUtils.GetCredentialsHandle(((IssuedSecurityTokenParameters) securityTokenParameters).IssuerBinding, clientCredentials);
+          if (credentialsHandle != null)
+            return credentialsHandle;
+#endif
+        }
+        else
+        {
+          if (securityTokenParameters is SspiSecurityTokenParameters)
+          {
+            flag1 = true;
+            break;
+          }
+#if !FEATURE_CORECLR
+          if (securityTokenParameters is KerberosSecurityTokenParameters)
+          {
+            flag2 = true;
+            break;
+          }
+#else
+          Console.WriteLine("Skipping KerberosSecurityTokenParameters");
+#endif
+        }
+      }
+      if (!flag1 && !flag2)
+        return (System.IdentityModel.SafeFreeCredentials) null;
+      NetworkCredential credential = (NetworkCredential) null;
+      if (clientCredentials != null)
+        credential = SecurityUtils.GetNetworkCredentialOrDefault(clientCredentials.Windows.ClientCredential);
+      if (flag2)
+        return SecurityUtils.GetCredentialsHandle("Kerberos", credential, false);
+      if (clientCredentials == null || AllowNtlm())
+        return SecurityUtils.GetCredentialsHandle("Negotiate", credential, false);
+      if (!SecurityUtils.IsOsGreaterThanXP())
+        return SecurityUtils.GetCredentialsHandle("Kerberos", credential, false);
+      return SecurityUtils.GetCredentialsHandle("Negotiate", credential, false, "!NTLM");
+    }
+    
+    private static bool AllowNtlm()
+    {
+        return true;
+    }
+    
+    private static bool IsOsGreaterThanXP()
+    {
+        return true;
+    }
+    
+    public static void ThrowIfNegotiationFault(Message message, EndpointAddress target)
+    {
+      if (message.IsFault)
+      {
+        MessageFault fault = MessageFault.CreateFault(message, 16384);
+        Exception exception = (Exception) new FaultException(fault, message.Headers.Action);
+        if (fault.Code != null && fault.Code.IsReceiverFault && fault.Code.SubCode != null)
+        {
+          FaultCode subCode = fault.Code.SubCode;
+          if (subCode.Name == "ServerTooBusy" && subCode.Namespace == "http://schemas.microsoft.com/ws/2006/05/security")
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ServerTooBusyException(SR.GetString("SecurityServerTooBusy", new object[1]{ (object) target }), exception));
+          if (subCode.Name == "EndpointUnavailable" && subCode.Namespace == message.Version.Addressing.Namespace)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new EndpointNotFoundException(SR.GetString("SecurityEndpointNotFound", new object[1]{ (object) target }), exception));
+        }
+        throw TraceUtility.ThrowHelperError(exception, message);
+      }
+    }
+
+    internal static IAsyncResult BeginCloseTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("CloseCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      return (IAsyncResult) new SecurityUtils.CloseCommunicationObjectAsyncResult((object) tokenProvider, timeout, callback, state);
+#endif
+    }
+
+    internal static void EndCloseTokenProviderIfRequired(IAsyncResult result)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("CloseCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      SecurityUtils.CloseCommunicationObjectAsyncResult.End(result);
+#endif
+    }
+
+    internal static IAsyncResult BeginOpenTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout, AsyncCallback callback, object state)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OpenCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      return (IAsyncResult) new SecurityUtils.OpenCommunicationObjectAsyncResult((object) tokenProvider, timeout, callback, state);
+#endif
+    }
+
+    internal static void EndOpenTokenProviderIfRequired(IAsyncResult result)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("OpenCommunicationObjectAsyncResult not supported in .NET Core");
+#else
+      SecurityUtils.OpenCommunicationObjectAsyncResult.End(result);
+#endif
+    }
+
+    internal static bool IsChannelBindingDisabled
+    {
+      get
+      {
+#if FEATURE_CORECLR
+        throw new NotImplementedException("Registry is not supported in .NET Core");
+#else
+        return (uint) (SecurityUtils.GetSuppressChannelBindingValue() & 1) > 0U;
+#endif
+      }
+    }
+
+    internal static bool IsSecurityBindingSuitableForChannelBinding(TransportSecurityBindingElement securityBindingElement)
+    {
+#if FEATURE_CORECLR
+      throw new NotImplementedException("SupportingTokenParameters.Signed is not supported in .NET Core");
+#else
+      return securityBindingElement != null && (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Endorsing) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Signed) || (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEndorsing)));
+#endif
+    }
+
+    internal static bool IsSecurityFault(MessageFault fault, SecurityStandardsManager standardsManager)
+    {
+      if (fault.Code.IsSenderFault)
+      {
+        FaultCode subCode = fault.Code.SubCode;
+        if (subCode != null)
+        {
+          if (!(subCode.Namespace == standardsManager.SecurityVersion.HeaderNamespace.Value) && !(subCode.Namespace == standardsManager.SecureConversationDriver.Namespace.Value) && !(subCode.Namespace == standardsManager.TrustDriver.Namespace.Value))
+            return subCode.Namespace == "http://schemas.microsoft.com/ws/2006/05/security";
+          return true;
+        }
+      }
+      return false;
+    }
+
+    internal static Exception CreateSecurityFaultException(Message unverifiedMessage)
+    {
+      return SecurityUtils.CreateSecurityFaultException(MessageFault.CreateFault(unverifiedMessage, 16384));
+    }
+
+    internal static Exception CreateSecurityFaultException(MessageFault fault)
+    {
+      return (Exception) new MessageSecurityException(SR.GetString("UnsecuredMessageFaultReceived"), (Exception) FaultException.CreateFault(fault, new System.Type[2]{ typeof (string), typeof (object) }));
+    }
+
+#endregion
+
         internal static IIdentity AnonymousIdentity
         {
             get
@@ -296,22 +503,6 @@ namespace System.ServiceModel.Security
             return CreateWindowsIdentity();
         }
 
-#if !SUPPORTS_WINDOWSIDENTITY
-        internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
-        {
-            EndpointIdentity identity = null;
-            if (spnOnly)
-            {
-                identity = EndpointIdentity.CreateSpnIdentity(String.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
-            }
-            else
-            {
-                throw ExceptionHelper.PlatformNotSupported();
-            }
-
-            return identity;
-        }
-#else
         private static bool IsSystemAccount(WindowsIdentity self)
         {
             SecurityIdentifier sid = self.User;
@@ -375,7 +566,6 @@ namespace System.ServiceModel.Security
                 return new WindowsIdentity(token, authType);
             return new WindowsIdentity(token);
         }
-#endif // !SUPPORTS_WINDOWSIDENTITY
 
         internal static string GetSpnFromIdentity(EndpointIdentity identity, EndpointAddress target)
         {
@@ -468,11 +658,7 @@ namespace System.ServiceModel.Security
             if (principalName.Contains("@") || principalName.Contains(@"\"))
             {
                 identityClaim = new Claim(ClaimTypes.Upn, principalName, Rights.Identity);
-#if SUPPORTS_WINDOWSIDENTITY
                 primaryPrincipal = Claim.CreateUpnClaim(principalName);
-#else
-                throw ExceptionHelper.PlatformNotSupported("UPN claim not supported"); 
-#endif // SUPPORTS_WINDOWSIDENTITY
             }
             else
             {
@@ -503,14 +689,10 @@ namespace System.ServiceModel.Security
                 WindowsClaimSet windows = claimSet as WindowsClaimSet;
                 if (windows != null)
                 {
-#if SUPPORTS_WINDOWSIDENTITY
                     if (str.Length > 0)
                         str.Append(", ");
 
                     AppendIdentityName(str, windows.WindowsIdentity);
-#else
-                    throw ExceptionHelper.PlatformNotSupported(ExceptionHelper.WinsdowsStreamSecurityNotSupported);
-#endif // SUPPORTS_WINDOWSIDENTITY 
                 }
                 else
                 {
@@ -572,7 +754,7 @@ namespace System.ServiceModel.Security
                 }
             }
             // Same format as X509Identity
-            str.Append(String.IsNullOrEmpty(value) ? "<x509>" : value);
+            str.Append(string.IsNullOrEmpty(value) ? "<x509>" : value);
             str.Append("; ");
             str.Append(certificate.Thumbprint);
         }
@@ -584,7 +766,6 @@ namespace System.ServiceModel.Security
             {
                 name = identity.Name;
             }
-#pragma warning suppress 56500
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
@@ -594,8 +775,7 @@ namespace System.ServiceModel.Security
                 // suppress exception, this is just info.
             }
 
-            str.Append(String.IsNullOrEmpty(name) ? "<null>" : name);
-#if SUPPORTS_WINDOWSIDENTITY // NegotiateStream
+            str.Append(string.IsNullOrEmpty(name) ? "<null>" : name);
             WindowsIdentity windows = identity as WindowsIdentity;
             if (windows != null)
             {
@@ -614,11 +794,7 @@ namespace System.ServiceModel.Security
                     str.Append(sid.SecurityIdentifier.ToString());
                 }
             }
-#else
-            throw ExceptionHelper.PlatformNotSupported(ExceptionHelper.WinsdowsStreamSecurityNotSupported);
-#endif // SUPPORTS_WINDOWSIDENTITY
         }
-
 
         internal static void OpenTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout)
         {
@@ -692,6 +868,7 @@ namespace System.ServiceModel.Security
 
         internal static SecurityStandardsManager CreateSecurityStandardsManager(MessageSecurityVersion securityVersion, SecurityTokenManager tokenManager)
         {
+            Console.WriteLine("Creating SecurityTokenSerializer");
             SecurityTokenSerializer tokenSerializer = tokenManager.CreateSecurityTokenSerializer(securityVersion.SecurityTokenVersion);
             return new SecurityStandardsManager(securityVersion, tokenSerializer);
         }
@@ -802,7 +979,6 @@ namespace System.ServiceModel.Security
 
                 // CurrentUser could be set muliple times
                 // This is fine because it does not affect the value returned.
-#if SUPPORTS_WINDOWSIDENTITY
                 try
                 {
                     using (WindowsIdentity self = WindowsIdentity.GetCurrent())
@@ -816,10 +992,6 @@ namespace System.ServiceModel.Security
                     //so returning a username which is very unlikely to be a real username;
                     s_currentUser = DefaultCurrentUser;
                 }
-#else
-                // There's no way to retrieve the current logged in user Id in UWP apps
-                s_currentUser = DefaultCurrentUser;
-#endif // SUPPORTS_WINDOWSIDENTITY
 
                 return s_currentUser;
             }
@@ -949,7 +1121,6 @@ namespace System.ServiceModel.Security
             }
         }
 
-#if SUPPORTS_WINDOWSIDENTITY // NegotiateStream
         public static void ValidateAnonymityConstraint(WindowsIdentity identity, bool allowUnauthenticatedCallers)
         {
             if (!allowUnauthenticatedCallers && identity.User.IsWellKnown(WellKnownSidType.AnonymousSid))
@@ -958,7 +1129,6 @@ namespace System.ServiceModel.Security
                     new SecurityTokenValidationException(SR.Format(SR.AnonymousLogonsAreNotAllowed)));
             }
         }
-#endif // SUPPORTS_WINDOWSIDENTITY 
 
         // This is the workaround, Since store.Certificates returns a full collection
         // of certs in store.  These are holding native resources.

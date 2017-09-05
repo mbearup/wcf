@@ -156,7 +156,7 @@ namespace System.IdentityModel.Selectors
         protected abstract SecurityKeyIdentifierClause ReadKeyIdentifierClauseCore(XmlReader reader);
         protected abstract void WriteKeyIdentifierClauseCore(XmlWriter writer, SecurityKeyIdentifierClause keyIdentifierClause);
 
-        internal abstract class KeyIdentifierClauseEntry
+        public abstract class KeyIdentifierClauseEntry
         {
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
@@ -173,7 +173,7 @@ namespace System.IdentityModel.Selectors
             public abstract void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause);
         }
 
-        internal abstract class StrEntry
+        public abstract class StrEntry
         {
             public abstract string GetTokenTypeUri();
             public abstract Type GetTokenType(SecurityKeyIdentifierClause clause);
@@ -183,7 +183,7 @@ namespace System.IdentityModel.Selectors
             public abstract void WriteContent(XmlDictionaryWriter writer, SecurityKeyIdentifierClause clause);
         }
 
-        internal abstract class SerializerEntries
+        public abstract class SerializerEntries
         {
             public virtual void PopulateTokenEntries(IList<TokenEntry> tokenEntries) { }
             public virtual void PopulateKeyIdentifierEntries(IList<KeyIdentifierEntry> keyIdentifierEntries) { }
@@ -191,7 +191,7 @@ namespace System.IdentityModel.Selectors
             public virtual void PopulateStrEntries(IList<StrEntry> strEntries) { }
         }
 
-        internal abstract class KeyIdentifierEntry
+        public abstract class KeyIdentifierEntry
         {
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
@@ -208,7 +208,7 @@ namespace System.IdentityModel.Selectors
             public abstract void WriteKeyIdentifierCore(XmlDictionaryWriter writer, SecurityKeyIdentifier keyIdentifier);
         }
 
-        internal abstract class TokenEntry
+        public abstract class TokenEntry
         {
             private Type[] _tokenTypes = null;
 

@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace System.IdentityModel
 {
-    internal class DictionaryManager
+    public class DictionaryManager
     {
         private SamlDictionary _samlDictionary;
         private XmlSignatureDictionary _sigantureDictionary;

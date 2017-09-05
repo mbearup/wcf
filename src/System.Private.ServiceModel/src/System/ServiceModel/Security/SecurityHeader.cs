@@ -14,7 +14,7 @@ using ISecurityElement = System.IdentityModel.ISecurityElement;
 
 namespace System.ServiceModel.Security
 {
-    internal abstract class SecurityHeader : MessageHeader
+    public abstract class SecurityHeader : MessageHeader
     {
         private readonly string _actor;
         private readonly SecurityAlgorithmSuite _algorithmSuite;

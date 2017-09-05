@@ -5,7 +5,7 @@
 
 namespace System.Runtime
 {
-    internal struct TracePayload
+    public struct TracePayload
     {
         private string _serializedException;
         private string _eventSource;

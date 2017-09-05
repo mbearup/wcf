@@ -11,7 +11,7 @@ namespace System.ServiceModel.Channels
     /// <summary>
     /// Base class for non-SOAP messages
     /// </summary>
-    internal abstract class ContentOnlyMessage : Message
+    public abstract class ContentOnlyMessage : Message
     {
         private MessageHeaders _headers;
         private MessageProperties _properties;

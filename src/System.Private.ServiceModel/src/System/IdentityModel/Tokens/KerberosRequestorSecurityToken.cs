@@ -19,8 +19,9 @@ namespace System.IdentityModel.Tokens
         private readonly string _servicePrincipalName;
         private DateTime _effectiveTime;
         private DateTime _expirationTime;
+        private byte[] apreq;
 
-        internal KerberosRequestorSecurityToken(string servicePrincipalName, TokenImpersonationLevel tokenImpersonationLevel, NetworkCredential networkCredential, string id)
+        public KerberosRequestorSecurityToken(string servicePrincipalName, TokenImpersonationLevel tokenImpersonationLevel, NetworkCredential networkCredential, string id)
         {
             if (servicePrincipalName == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("servicePrincipalName");
@@ -43,6 +44,11 @@ namespace System.IdentityModel.Tokens
                 // FQ userName.
             }
             _id = id;
+        }
+
+        public byte[] GetRequest()
+        {
+            return System.IdentityModel.SecurityUtils.CloneBuffer(this.apreq);
         }
 
         public override string Id

@@ -14,7 +14,7 @@ using System.ServiceModel;
 
 namespace System.Runtime.Diagnostics
 {
-    internal abstract class DiagnosticTraceBase
+    public abstract class DiagnosticTraceBase
     {
         //Diagnostics trace
         protected const string DefaultTraceListenerName = "Default";
@@ -41,6 +41,25 @@ namespace System.Runtime.Diagnostics
 
         protected DateTime LastFailure { get; set; }
 
+#region From WCF        
+
+        public virtual bool ShouldTrace(TraceEventLevel level)
+        {
+          return this.ShouldTraceToTraceSource(level);
+        }
+        
+        public bool ShouldTraceToTraceSource(TraceEventLevel level)
+        {
+            return false;
+        }
+
+        protected virtual void OnShutdownTracing()
+        {}
+
+        protected virtual void OnUnhandledException(Exception exception)
+        {}
+
+#endregion
         protected string EventSourceName
         {
             [Fx.Tag.SecurityNote(Critical = "Access critical eventSourceName field",
@@ -152,7 +171,7 @@ namespace System.Runtime.Diagnostics
             return CreateDefaultSourceString(source);
         }
 
-        internal static string CreateDefaultSourceString(object source)
+        public static string CreateDefaultSourceString(object source)
         {
             if (source == null)
             {

@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace System.ServiceModel
 {
-    internal static class XmlUtil
+    public static class XmlUtil
     {
         public const string XmlNs = "http://www.w3.org/XML/1998/namespace";
         public const string XmlNsNs = "http://www.w3.org/2000/xmlns/";

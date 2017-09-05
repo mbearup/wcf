@@ -23,6 +23,25 @@ namespace System.ServiceModel.Description
         {
         }
 
+#region FromWCF
+        public bool SupportInteractive { get; set; }
+        private bool useIdentityConfiguration;
+        
+        public bool UseIdentityConfiguration
+        {
+          get
+          {
+            return this.useIdentityConfiguration;
+          }
+          set
+          {
+            if (this._isReadOnly)
+              throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ObjectIsReadOnly")));
+            this.useIdentityConfiguration = value;
+          }
+        }
+#endregion
+
         protected ClientCredentials(ClientCredentials other)
         {
             if (other == null)

@@ -38,7 +38,6 @@ namespace System.IdentityModel.Claims
         {
             get
             {
-#if SUPPORTS_WINDOWSIDENTITY // NegotiateStream
                 if (s_windows == null)
                 {
                     List<Claim> claims = new List<Claim>(2);
@@ -48,14 +47,11 @@ namespace System.IdentityModel.Claims
                     s_windows = new DefaultClaimSet(claims);
                 }
                 return s_windows;
-#else 
-                throw ExceptionHelper.PlatformNotSupported(ExceptionHelper.WinsdowsStreamSecurityNotSupported);
-#endif // SUPPORTS_WINDOWSIDENTITY
             }
         }
 
 
-        internal static ClaimSet Anonymous
+        public static ClaimSet Anonymous
         {
             get
             {
@@ -66,7 +62,7 @@ namespace System.IdentityModel.Claims
             }
         }
 
-        static internal bool SupportedRight(string right)
+        public static bool SupportedRight(string right)
         {
             return right == null ||
                 Rights.Identity.Equals(right) ||

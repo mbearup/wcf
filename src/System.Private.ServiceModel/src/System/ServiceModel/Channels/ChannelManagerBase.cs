@@ -14,12 +14,12 @@ namespace System.ServiceModel.Channels
         protected abstract TimeSpan DefaultReceiveTimeout { get; }
         protected abstract TimeSpan DefaultSendTimeout { get; }
 
-        internal TimeSpan InternalReceiveTimeout
+        public TimeSpan InternalReceiveTimeout
         {
             get { return this.DefaultReceiveTimeout; }
         }
 
-        internal TimeSpan InternalSendTimeout
+        public TimeSpan InternalSendTimeout
         {
             get { return this.DefaultSendTimeout; }
         }

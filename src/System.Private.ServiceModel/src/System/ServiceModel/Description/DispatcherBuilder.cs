@@ -10,9 +10,9 @@ using System.ServiceModel.Security;
 
 namespace System.ServiceModel.Description
 {
-    internal class DispatcherBuilder
+    public class DispatcherBuilder
     {
-        internal static ClientRuntime BuildProxyBehavior(ServiceEndpoint serviceEndpoint, out BindingParameterCollection parameters)
+        public static ClientRuntime BuildProxyBehavior(ServiceEndpoint serviceEndpoint, out BindingParameterCollection parameters)
         {
             parameters = new BindingParameterCollection();
             SecurityContractInformationEndpointBehavior.ClientInstance.AddBindingParameters(serviceEndpoint, parameters);

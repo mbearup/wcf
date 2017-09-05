@@ -5,7 +5,7 @@
 
 namespace System.ServiceModel.Channels
 {
-    internal interface IChannelAcceptor<TChannel> : ICommunicationObject
+    public interface IChannelAcceptor<TChannel> : ICommunicationObject
         where TChannel : class, IChannel
     {
         TChannel AcceptChannel(TimeSpan timeout);

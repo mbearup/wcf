@@ -18,14 +18,43 @@ namespace System.ServiceModel
         private HttpClientCredentialType _clientCredentialType;
         private HttpProxyCredentialType _proxyCredentialType;
         private string _realm;
-
+        private ExtendedProtectionPolicy extendedProtectionPolicy = null;
 
         public HttpTransportSecurity()
         {
             _clientCredentialType = DefaultClientCredentialType;
             _proxyCredentialType = DefaultProxyCredentialType;
             _realm = DefaultRealm;
+            extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
+
+#region FromWCF
+        public bool ShouldSerializeProxyCredentialType()
+        {
+            return (uint) this._proxyCredentialType > 0U;
+        }
+
+        public bool ShouldSerializeRealm()
+        {
+            return this._realm != "";
+        }
+
+    public ExtendedProtectionPolicy ExtendedProtectionPolicy
+    {
+      get
+      {
+        return this.extendedProtectionPolicy;
+      }
+      set
+      {
+        if (value == null)
+          throw new ArgumentNullException("value");
+        // if (value.PolicyEnforcement == PolicyEnforcement.Always && !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+        //   throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new PlatformNotSupportedException(SR.GetString("ExtendedProtectionNotSupported")));
+        this.extendedProtectionPolicy = value;
+      }
+    }
+#endregion
 
         public HttpClientCredentialType ClientCredentialType
         {
@@ -62,7 +91,7 @@ namespace System.ServiceModel
         }
 
 
-        internal void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
+        public void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
         {
             DisableAuthentication(https);
             https.RequireClientCertificate = false;
@@ -72,18 +101,27 @@ namespace System.ServiceModel
         {
             http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(_clientCredentialType);
             http.Realm = this.Realm;
+#region FromWCF
+            http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;
+#endregion
         }
 
         private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
             transportSecurity._clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
             transportSecurity.Realm = http.Realm;
+#region FromWCF
+            transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
+#endregion
         }
 
         private void DisableAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = AuthenticationSchemes.Anonymous;
             http.Realm = DefaultRealm;
+#region FromWCF
+            http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;
+#endregion
             //ExtendedProtectionPolicy is always copied - even for security mode None, Message and TransportWithMessageCredential,
             //because the settings for ExtendedProtectionPolicy are always below the <security><transport> element
             //http.ExtendedProtectionPolicy = this.extendedProtectionPolicy;
@@ -94,13 +132,13 @@ namespace System.ServiceModel
             return http.AuthenticationScheme == AuthenticationSchemes.Anonymous && http.Realm == DefaultRealm;
         }
 
-        internal void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
+        public void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
         {
             ConfigureAuthentication(https);
             https.RequireClientCertificate = (_clientCredentialType == HttpClientCredentialType.Certificate);
         }
 
-        internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
+        public static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
         {
             ConfigureAuthentication(https, transportSecurity);
             if (https.RequireClientCertificate)

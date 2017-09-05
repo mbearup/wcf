@@ -17,9 +17,9 @@ namespace System.Runtime.Diagnostics
             _dictionary = dictionary;
         }
 
-        internal override string EventId { get { return TraceRecord.EventIdBase + "Dictionary" + TraceRecord.NamespaceSuffix; } }
+        public override string EventId { get { return TraceRecord.EventIdBase + "Dictionary" + TraceRecord.NamespaceSuffix; } }
 
-        internal override void WriteTo(XmlWriter xml)
+        public override void WriteTo(XmlWriter xml)
         {
             if (_dictionary != null)
             {

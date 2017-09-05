@@ -29,5 +29,41 @@ namespace System.ServiceModel.Security.Tokens
         {
             return InternalToString();
         }
+        
+        public AuditLogLocation AuditLogLocation
+        {
+          get
+          {
+            return this.GetPropertyOrDefault<AuditLogLocation>(ServiceModelSecurityTokenRequirement.AuditLogLocationProperty, AuditLogLocation.Default);
+          }
+          set
+          {
+            this.Properties[ServiceModelSecurityTokenRequirement.AuditLogLocationProperty] = (object) value;
+          }
+        }
+        
+        public bool SuppressAuditFailure
+        {
+          get
+          {
+            return this.GetPropertyOrDefault<bool>(ServiceModelSecurityTokenRequirement.SuppressAuditFailureProperty, true);
+          }
+          set
+          {
+            this.Properties[ServiceModelSecurityTokenRequirement.SuppressAuditFailureProperty] = (object) value;
+          }
+        }
+        
+        public AuditLevel MessageAuthenticationAuditLevel
+        {
+          get
+          {
+            return this.GetPropertyOrDefault<AuditLevel>(ServiceModelSecurityTokenRequirement.MessageAuthenticationAuditLevelProperty, AuditLevel.None);
+          }
+          set
+          {
+            this.Properties[ServiceModelSecurityTokenRequirement.MessageAuthenticationAuditLevelProperty] = (object) value;
+          }
+        }
     }
 }

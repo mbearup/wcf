@@ -64,7 +64,7 @@ namespace System.ServiceModel.Channels
             get { return _state; }
         }
 
-        internal void BodyToString(XmlDictionaryWriter writer)
+        public void BodyToString(XmlDictionaryWriter writer)
         {
             OnBodyToString(writer);
         }
@@ -149,7 +149,7 @@ namespace System.ServiceModel.Channels
             return new BodyWriterMessage(version, action, body);
         }
 
-        static internal Message CreateMessage(MessageVersion version, ActionHeader actionHeader, BodyWriter body)
+        static public Message CreateMessage(MessageVersion version, ActionHeader actionHeader, BodyWriter body)
         {
             if (version == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("version"));
@@ -165,7 +165,7 @@ namespace System.ServiceModel.Channels
             return new BodyWriterMessage(version, action, EmptyBodyWriter.Value);
         }
 
-        static internal Message CreateMessage(MessageVersion version, ActionHeader actionHeader)
+        static public Message CreateMessage(MessageVersion version, ActionHeader actionHeader)
         {
             if (version == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("version"));
@@ -220,7 +220,7 @@ namespace System.ServiceModel.Channels
             return new BodyWriterMessage(version, action, new FaultBodyWriter(fault, version.Envelope));
         }
 
-        internal Exception CreateMessageDisposedException()
+        public Exception CreateMessageDisposedException()
         {
             return new ObjectDisposedException("", SR.MessageClosed);
         }
@@ -306,7 +306,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal void InitializeReply(Message request)
+        public void InitializeReply(Message request)
         {
             UniqueId requestMessageID = request.Headers.MessageId;
             if (requestMessageID == null)
@@ -539,7 +539,7 @@ namespace System.ServiceModel.Channels
             return null;
         }
 
-        internal void ReadFromBodyContentsToEnd(XmlDictionaryReader reader)
+        public void ReadFromBodyContentsToEnd(XmlDictionaryReader reader)
         {
             Message.ReadFromBodyContentsToEnd(reader, this.Version.Envelope);
         }
@@ -554,7 +554,7 @@ namespace System.ServiceModel.Channels
             reader.MoveToContent();
         }
 
-        internal static bool ReadStartBody(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion, out bool isFault, out bool isEmpty)
+        public static bool ReadStartBody(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion, out bool isFault, out bool isEmpty)
         {
             if (reader.IsEmptyElement)
             {
@@ -615,7 +615,7 @@ namespace System.ServiceModel.Channels
             OnWriteStartBody(writer);
         }
 
-        internal void WriteStartHeaders(XmlDictionaryWriter writer)
+        public void WriteStartHeaders(XmlDictionaryWriter writer)
         {
             OnWriteStartHeaders(writer);
         }
@@ -1908,7 +1908,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal class HeaderInfoCache
+    public class HeaderInfoCache
     {
         private const int maxHeaderInfos = 4;
         private HeaderInfo[] _headerInfos;

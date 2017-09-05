@@ -40,6 +40,18 @@ namespace System.ServiceModel.Security
             }
             return GetValueAsQName(reader, qname);
         }
+#if FEATURE_CORECLR
+        internal static string ReadTextElementAsTrimmedString(XmlElement element)
+        {
+          if (element == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+          using (XmlReader xmlReader = (XmlReader) new XmlNodeReader((XmlNode) element))
+          {
+            int content = (int) xmlReader.MoveToContent();
+            return XmlUtil.Trim(xmlReader.ReadElementContentAsString());
+          }
+        }
+#endif
 
         /// <summary>
         /// Enforces that parent has exactly 1 child of type XML element and nothing else (barring comments and whitespaces)
@@ -394,6 +406,11 @@ namespace System.ServiceModel.Security
             UniqueId id = reader.ReadContentAsUniqueId();
             reader.ReadEndElement();
             return id;
+        }
+        
+        public static UniqueId ReadTextElementAsUniqueId(XmlElement element)
+        {
+          return new UniqueId(XmlHelper.ReadTextElementAsTrimmedString(element));
         }
     }
 }

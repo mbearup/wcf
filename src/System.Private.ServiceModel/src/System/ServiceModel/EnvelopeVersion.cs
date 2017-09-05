@@ -93,17 +93,17 @@ namespace System.ServiceModel
             get { return _actor; }
         }
 
-        internal XmlDictionaryString DictionaryActor
+        public XmlDictionaryString DictionaryActor
         {
             get { return _dictionaryActor; }
         }
 
-        internal string Namespace
+        public string Namespace
         {
             get { return _ns; }
         }
 
-        internal XmlDictionaryString DictionaryNamespace
+        public XmlDictionaryString DictionaryNamespace
         {
             get { return _dictionaryNs; }
         }
@@ -128,12 +128,12 @@ namespace System.ServiceModel
             get { return s_soap12; }
         }
 
-        internal string ReceiverFaultName
+        public string ReceiverFaultName
         {
             get { return _receiverFaultName; }
         }
 
-        internal string SenderFaultName
+        public string SenderFaultName
         {
             get { return _senderFaultName; }
         }

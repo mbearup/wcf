@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net.Security;
 using System.Reflection;
 
 namespace System.ServiceModel.Description
@@ -57,11 +58,15 @@ namespace System.ServiceModel.Description
             _knownTypes = new Collection<Type>();
         }
 
-        internal OperationDescription(string name, ContractDescription declaringContract, bool validateRpcWrapperName)
+        public OperationDescription(string name, ContractDescription declaringContract, bool validateRpcWrapperName)
             : this(name, declaringContract)
         {
             _validateRpcWrapperName = validateRpcWrapperName;
         }
+
+        // For netcore only
+        public ProtectionLevel ProtectionLevel { get; set; }
+        public bool HasProtectionLevel { get; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {
@@ -160,7 +165,7 @@ namespace System.ServiceModel.Description
             set { _isInitiating = value; }
         }
 
-        internal bool IsServerInitiated()
+        public bool IsServerInitiated()
         {
             EnsureInvariants();
             return Messages[0].Direction == MessageDirection.Output;

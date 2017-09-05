@@ -9,7 +9,7 @@ using System.Diagnostics.Contracts;
 
 namespace System.ServiceModel
 {
-    internal class ServiceModelStringsVersion1 : ServiceModelStrings
+    public class ServiceModelStringsVersion1 : ServiceModelStrings
     {
         public const string String0 = "mustUnderstand";
         public const string String1 = "Envelope";

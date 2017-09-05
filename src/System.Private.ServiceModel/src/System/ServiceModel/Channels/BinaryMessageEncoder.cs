@@ -15,7 +15,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Channels
 {
-    internal class BinaryMessageEncoderFactory : MessageEncoderFactory
+    public class BinaryMessageEncoderFactory : MessageEncoderFactory
     {
         private const int maxPooledXmlReaderPerMessage = 2;
 

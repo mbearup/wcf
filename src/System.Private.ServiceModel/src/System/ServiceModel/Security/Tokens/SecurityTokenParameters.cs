@@ -5,6 +5,10 @@
 
 using System.Globalization;
 using System.Text;
+#region Needed for SecurityToken and securityTokenRequirement classes
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
+#endregion
 
 namespace System.ServiceModel.Security.Tokens
 {
@@ -13,6 +17,8 @@ namespace System.ServiceModel.Security.Tokens
         internal const bool defaultRequireDerivedKeys = true;
 
         private bool _requireDerivedKeys = defaultRequireDerivedKeys;
+
+        public SecurityTokenInclusionMode InclusionMode {get; set;}
 
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {
@@ -44,6 +50,25 @@ namespace System.ServiceModel.Security.Tokens
         internal protected abstract bool SupportsClientAuthentication { get; }
         internal protected abstract bool SupportsServerAuthentication { get; }
         internal protected abstract bool SupportsClientWindowsIdentity { get; }
+#if FEATURE_CORECLR
+        public virtual SecurityKeyIdentifierClause CreateGenericXmlTokenKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+            GenericXmlSecurityToken xmlSecurityToken = token as GenericXmlSecurityToken;
+            if (xmlSecurityToken != null)
+            {
+              if (referenceStyle == SecurityTokenReferenceStyle.Internal && xmlSecurityToken.InternalTokenReference != null)
+                  return xmlSecurityToken.InternalTokenReference;
+              if (referenceStyle == SecurityTokenReferenceStyle.External && xmlSecurityToken.ExternalTokenReference != null)
+                  return xmlSecurityToken.ExternalTokenReference;
+            }
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new MessageSecurityException("UnableToCreateTokenReference"));
+        }
+
+        protected internal virtual bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
+        {
+            throw new NotImplementedException("MatchesKeyIdentifierClause must be overriden");
+        }
+#endif
 
         public SecurityTokenParameters Clone()
         {
@@ -66,5 +91,48 @@ namespace System.ServiceModel.Security.Tokens
 
             return sb.ToString();
         }
+
+#region Compatibility with classes that inherit from other versions of SecurityTokenParameters
+        protected virtual SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+#if FEATURE_CORECLR
+            if (token is GenericXmlSecurityToken)
+            {
+                return this.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            }
+            return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+#else
+            throw new NotImplementedException("CreateKeyIdentifierClause is not implemented in SecurityTokenParameters class");
+#endif
+        }
+        
+#if FEATURE_CORECLR        
+        public virtual void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
+#else
+        protected virtual void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
+#endif
+        {
+            Console.WriteLine("InitializeSecurityTokenRequirement not supported...");
+            throw new NotImplementedException("InitializeSecurityTokenRequirement is not implemented in SecurityTokenParameters class");
+        }
+#endregion
+
+#if FEATURE_CORECLR
+        internal SecurityKeyIdentifierClause CreateKeyIdentifierClause<TExternalClause, TInternalClause>(SecurityToken token, SecurityTokenReferenceStyle referenceStyle) where TExternalClause : SecurityKeyIdentifierClause where TInternalClause : SecurityKeyIdentifierClause
+        {
+          if (token == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+          SecurityKeyIdentifierClause identifierClause;
+          if (referenceStyle != SecurityTokenReferenceStyle.Internal)
+          {
+            if (referenceStyle != SecurityTokenReferenceStyle.External)
+              throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("TokenDoesNotSupportKeyIdentifierClauseCreation", (object) token.GetType().Name, (object) referenceStyle)));
+            identifierClause = (SecurityKeyIdentifierClause) token.CreateKeyIdentifierClause<TExternalClause>();
+          }
+          else
+            identifierClause = (SecurityKeyIdentifierClause) token.CreateKeyIdentifierClause<TInternalClause>();
+          return identifierClause;
+        }
+#endif
     }
 }

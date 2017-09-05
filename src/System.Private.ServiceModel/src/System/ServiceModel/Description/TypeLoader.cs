@@ -18,7 +18,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Description
 {
-    internal class TypeLoader
+    public class TypeLoader
     {
         private static Type[] s_messageContractMemberAttributes = {
             typeof(MessageHeaderAttribute),
@@ -33,7 +33,7 @@ namespace System.ServiceModel.Description
 
         private static Type[] s_knownTypesMethodParamType = new Type[] { typeof(CustomAttributeProvider) };
 
-        internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
+        public static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
         internal static XmlSerializerFormatAttribute DefaultXmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
 
         private static readonly Type s_OperationContractAttributeType = typeof(OperationContractAttribute);
@@ -1261,7 +1261,7 @@ namespace System.ServiceModel.Description
         }
 
         [SuppressMessage(FxCop.Category.Usage, "CA2301:EmbeddableTypesInContainersRule", MessageId = "messages", Justification = "No need to support type equivalence here.")]
-        internal MessageDescription CreateTypedMessageDescription(Type typedMessageType,
+        public MessageDescription CreateTypedMessageDescription(Type typedMessageType,
                                                   CustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string defaultNS,
@@ -1532,7 +1532,7 @@ namespace System.ServiceModel.Description
             return new XmlName(methodName + ReturnSuffix);
         }
 
-        internal static Type GetParameterType(ParameterInfo parameterInfo)
+        public static Type GetParameterType(ParameterInfo parameterInfo)
         {
             Type parameterType = parameterInfo.ParameterType;
             if (parameterType.IsByRef)

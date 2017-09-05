@@ -151,7 +151,7 @@ namespace System.ServiceModel.Channels
             return GetProtectionRequirements(addressingVersion);
         }
 
-        internal override bool IsMatch(BindingElement b)
+        public override bool IsMatch(BindingElement b)
         {
             if (b == null)
             {

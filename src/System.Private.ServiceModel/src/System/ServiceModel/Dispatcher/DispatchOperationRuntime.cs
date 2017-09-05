@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class DispatchOperationRuntime
+    public class DispatchOperationRuntime
     {
         private static AsyncCallback s_invokeCallback = Fx.ThunkCallback(DispatchOperationRuntime.InvokeCallback);
         private readonly string _action;

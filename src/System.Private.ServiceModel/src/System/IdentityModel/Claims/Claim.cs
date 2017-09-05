@@ -112,6 +112,13 @@ namespace System.IdentityModel.Claims
 
             return new Claim(ClaimTypes.Dns, dns, Rights.PossessProperty, ClaimComparer.Dns);
         }
+        
+        public static Claim CreateRsaClaim(RSA rsa)
+        {
+          if (rsa == null)
+            throw new ArgumentNullException("rsa");
+          return new Claim(ClaimTypes.Rsa, (object) rsa, Rights.PossessProperty, ClaimComparer.Rsa);
+        }
 
         public static Claim CreateHashClaim(byte[] hash)
         {
@@ -162,7 +169,6 @@ namespace System.IdentityModel.Claims
             return new Claim(ClaimTypes.Uri, uri, Rights.PossessProperty);
         }
 
-#if SUPPORTS_WINDOWSIDENTITY // NegotiateStream
         public static Claim CreateWindowsSidClaim(SecurityIdentifier sid)
         {
             if (sid == null)
@@ -170,7 +176,6 @@ namespace System.IdentityModel.Claims
 
             return new Claim(ClaimTypes.Sid, sid, Rights.PossessProperty);
         }
-#endif // SUPPORTS_WINDOWSIDENTITY 
 
         public static Claim CreateX500DistinguishedNameClaim(X500DistinguishedName x500DistinguishedName)
         {

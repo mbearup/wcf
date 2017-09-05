@@ -12,6 +12,19 @@ namespace System.ServiceModel.Channels
 {
     internal static class ChannelBindingUtility
     {
+        private static ExtendedProtectionPolicy disabledPolicy = new ExtendedProtectionPolicy(PolicyEnforcement.Never);
+        private static ExtendedProtectionPolicy defaultPolicy = ChannelBindingUtility.disabledPolicy;
+
+#region FromWCF
+        public static ExtendedProtectionPolicy DefaultPolicy
+        {
+          get
+          {
+            return ChannelBindingUtility.defaultPolicy;
+          }
+        }
+#endregion
+
 #if !FEATURE_NETNATIVE
         public static ChannelBinding GetToken(SslStream stream)
         {

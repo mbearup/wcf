@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace System.Runtime.Diagnostics
 {
     [StructLayout(LayoutKind.Explicit, Size = 16)]
-    internal struct EventDescriptor
+    public struct EventDescriptor
     {
         [FieldOffset(0)]
         private ushort _id;

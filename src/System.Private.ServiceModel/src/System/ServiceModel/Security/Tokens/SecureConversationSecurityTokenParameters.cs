@@ -4,6 +4,8 @@
 
 
 using System.Globalization;
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
 using System.ServiceModel.Channels;
 using System.Text;
 
@@ -18,6 +20,7 @@ namespace System.ServiceModel.Security.Tokens
         private bool _requireCancellation;
         private bool _canRenewSession = defaultCanRenewSession;
         private BindingContext _issuerBindingContext;
+        private ChannelProtectionRequirements _protectionRequirements;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
@@ -31,14 +34,61 @@ namespace System.ServiceModel.Security.Tokens
                 _issuerBindingContext = other._issuerBindingContext.Clone();
         }
 
+#region fromwcf
+    public bool CanRenewSession
+    {
+      get
+      {
+        return this._canRenewSession;
+      }
+      set
+      {
+        this._canRenewSession = value;
+      }
+    }
+
+#if FEATURE_CORECLR
+    protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+    {
+      Console.WriteLine("SecureConversationSecurityTokenParameters.CreateKeyIdentifierClause");
+      if (token is GenericXmlSecurityToken)
+        return this.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+      return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+    }
+    
+    public override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
+    {
+      requirement.TokenType = ServiceModelSecurityTokenTypes.SecureConversation;
+      requirement.KeyType = SecurityKeyType.SymmetricKey;
+      requirement.RequireCryptographicToken = true;
+      requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = (object) this.RequireCancellation;
+      requirement.Properties[ServiceModelSecurityTokenRequirement.SecureConversationSecurityBindingElementProperty] = (object) this.BootstrapSecurityBindingElement;
+      requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = (object) this.IssuerBindingContext.Clone();
+      requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = (object) this.Clone();
+    }
+#endif
+    
+#endregion
+
+
+        public bool RequireCancellation
+        {
+            get
+            {
+                return _requireCancellation;
+            }
+        }
+
         public SecureConversationSecurityTokenParameters()
         {
             // empty
         }
 
-        public SecureConversationSecurityTokenParameters(SecurityBindingElement bootstrapSecurityBindingElement)
+        public SecureConversationSecurityTokenParameters(SecurityBindingElement bootstrapSecurityBindingElement, bool requireCancellation = true, ChannelProtectionRequirements protectionRequirements = null)
         {
             _bootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
+            _requireCancellation = requireCancellation;
+            _protectionRequirements = protectionRequirements;
         }
 
         internal protected override bool HasAsymmetricKey { get { return false; } }

@@ -179,7 +179,7 @@ namespace System.ServiceModel.Security
             }
         }
 
-        internal bool IsHeaderIncluded(MessageHeader header)
+        public bool IsHeaderIncluded(MessageHeader header)
         {
             if (header == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("header");
@@ -187,7 +187,7 @@ namespace System.ServiceModel.Security
             return IsHeaderIncluded(header.Name, header.Namespace);
         }
 
-        internal bool IsHeaderIncluded(string name, string ns)
+        public bool IsHeaderIncluded(string name, string ns)
         {
             if (name == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
@@ -220,7 +220,7 @@ namespace System.ServiceModel.Security
             return false;
         }
 
-        internal bool IsEmpty()
+        public bool IsEmpty()
         {
             if (_headerTypes != null && _headerTypes.Count > 0)
                 return false;

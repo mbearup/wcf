@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
+using System.Collections.Generic;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
 using System.Net;
@@ -164,6 +164,13 @@ namespace System.ServiceModel
 #pragma warning restore 618
                     }
                 }
+                else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
+                {
+                    result = CreateSecureConversationSecurityTokenProvider(initiatorRequirement);
+                }
+                else
+                {
+                }
             }
 
             if ((result == null) && !tokenRequirement.IsOptionalToken)
@@ -174,11 +181,122 @@ namespace System.ServiceModel
             return result;
         }
 
+#region FromWCF
+        private SecurityTokenProvider CreateSecureConversationSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
+        { 
+          EndpointAddress targetAddress = initiatorRequirement.TargetAddress;
+          if (targetAddress == (EndpointAddress) null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("TokenRequirementDoesNotSpecifyTargetAddress", new object[1]
+            {
+              (object) initiatorRequirement
+            }));
+          SecurityBindingElement securityBindingElement = initiatorRequirement.SecurityBindingElement;
+          if (securityBindingElement == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("TokenProviderRequiresSecurityBindingElement", new object[1]
+            {
+              (object) initiatorRequirement
+            }));
+          LocalClientSecuritySettings localClientSettings = securityBindingElement.LocalClientSettings;
+          BindingContext property = initiatorRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
+          ChannelParameterCollection propertyOrDefault = initiatorRequirement.GetPropertyOrDefault<ChannelParameterCollection>(ServiceModelSecurityTokenRequirement.ChannelParametersCollectionProperty, (ChannelParameterCollection) null);
+          if (initiatorRequirement.SupportSecurityContextCancellation)
+          {
+            SecuritySessionSecurityTokenProvider securityTokenProvider = new SecuritySessionSecurityTokenProvider(this.GetCredentialsHandle(initiatorRequirement));
+            securityTokenProvider.BootstrapSecurityBindingElement = System.ServiceModel.Security.SecurityUtils.GetIssuerSecurityBindingElement((ServiceModelSecurityTokenRequirement) initiatorRequirement);
+            securityTokenProvider.IssuedSecurityTokenParameters = initiatorRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
+            securityTokenProvider.IssuerBindingContext = property;
+            securityTokenProvider.KeyEntropyMode = securityBindingElement.KeyEntropyMode;
+            securityTokenProvider.SecurityAlgorithmSuite = initiatorRequirement.SecurityAlgorithmSuite;
+            securityTokenProvider.StandardsManager = System.ServiceModel.Security.SecurityUtils.CreateSecurityStandardsManager((SecurityTokenRequirement) initiatorRequirement, (SecurityTokenManager) this);
+            securityTokenProvider.TargetAddress = targetAddress;
+            securityTokenProvider.Via = initiatorRequirement.GetPropertyOrDefault<Uri>(ServiceModelSecurityTokenRequirement.ViaProperty, (Uri) null);
+            Uri result1;
+            if (initiatorRequirement.TryGetProperty<Uri>(ServiceModelSecurityTokenRequirement.PrivacyNoticeUriProperty, out result1))
+              securityTokenProvider.PrivacyNoticeUri = result1;
+            int result2;
+            if (initiatorRequirement.TryGetProperty<int>(ServiceModelSecurityTokenRequirement.PrivacyNoticeVersionProperty, out result2))
+              securityTokenProvider.PrivacyNoticeVersion = result2;
+            EndpointAddress result3;
+            if (initiatorRequirement.TryGetProperty<EndpointAddress>(ServiceModelSecurityTokenRequirement.DuplexClientLocalAddressProperty, out result3))
+              securityTokenProvider.LocalAddress = result3;
+            securityTokenProvider.ChannelParameters = propertyOrDefault;
+            securityTokenProvider.WebHeaders = initiatorRequirement.WebHeaders;
+            return (SecurityTokenProvider) securityTokenProvider;
+          }
+          throw new NotImplementedException("Need AcceleratedTokenProvider");
+          /*AcceleratedTokenProvider acceleratedTokenProvider = new AcceleratedTokenProvider(this.GetCredentialsHandle(initiatorRequirement));
+          acceleratedTokenProvider.IssuerAddress = initiatorRequirement.IssuerAddress;
+          acceleratedTokenProvider.BootstrapSecurityBindingElement = System.ServiceModel.Security.SecurityUtils.GetIssuerSecurityBindingElement((ServiceModelSecurityTokenRequirement) initiatorRequirement);
+          acceleratedTokenProvider.CacheServiceTokens = localClientSettings.CacheCookies;
+          acceleratedTokenProvider.IssuerBindingContext = property;
+          acceleratedTokenProvider.KeyEntropyMode = securityBindingElement.KeyEntropyMode;
+          acceleratedTokenProvider.MaxServiceTokenCachingTime = localClientSettings.MaxCookieCachingTime;
+          acceleratedTokenProvider.SecurityAlgorithmSuite = initiatorRequirement.SecurityAlgorithmSuite;
+          acceleratedTokenProvider.ServiceTokenValidityThresholdPercentage = localClientSettings.CookieRenewalThresholdPercentage;
+          acceleratedTokenProvider.StandardsManager = System.ServiceModel.Security.SecurityUtils.CreateSecurityStandardsManager((SecurityTokenRequirement) initiatorRequirement, (SecurityTokenManager) this);
+          acceleratedTokenProvider.TargetAddress = targetAddress;
+          acceleratedTokenProvider.Via = initiatorRequirement.GetPropertyOrDefault<Uri>(ServiceModelSecurityTokenRequirement.ViaProperty, (Uri) null);
+          Uri result4;
+          if (initiatorRequirement.TryGetProperty<Uri>(ServiceModelSecurityTokenRequirement.PrivacyNoticeUriProperty, out result4))
+            acceleratedTokenProvider.PrivacyNoticeUri = result4;
+          acceleratedTokenProvider.ChannelParameters = propertyOrDefault;
+          int result5;
+          if (initiatorRequirement.TryGetProperty<int>(ServiceModelSecurityTokenRequirement.PrivacyNoticeVersionProperty, out result5))
+            acceleratedTokenProvider.PrivacyNoticeVersion = result5;
+          return (SecurityTokenProvider) acceleratedTokenProvider;*/
+        }
+        
+        private System.IdentityModel.SafeFreeCredentials GetCredentialsHandle(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
+        {
+          SspiIssuanceChannelParameter channelParameter = this.GetSspiIssuanceChannelParameter((SecurityTokenRequirement) initiatorRequirement);
+          if (channelParameter == null)
+            return (System.IdentityModel.SafeFreeCredentials) null;
+          return channelParameter.CredentialsHandle;
+        }
+        
+        private SspiIssuanceChannelParameter GetSspiIssuanceChannelParameter(SecurityTokenRequirement initiatorRequirement)
+        {
+          ChannelParameterCollection result;
+          if (initiatorRequirement.TryGetProperty<ChannelParameterCollection>(ServiceModelSecurityTokenRequirement.ChannelParametersCollectionProperty, out result) && result != null)
+          {
+            for (int index = 0; index < result.Count; ++index)
+            {
+              if (result[index] is SspiIssuanceChannelParameter)
+                return (SspiIssuanceChannelParameter) result[index];
+            }
+          }
+          return (SspiIssuanceChannelParameter) null;
+        }
+#endregion
+        
+        public SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityVersion version)
+        {
+          if (version == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("version"));
+          return this.CreateSecurityTokenSerializer((SecurityTokenVersion) MessageSecurityTokenVersion.GetSecurityTokenVersion(version, true));
+        }
+
+#region fromwcf
         public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
-            // not referenced anywhere in current code, but must implement abstract. 
-            throw ExceptionHelper.PlatformNotSupported("CreateSecurityTokenSerializer(SecurityTokenVersion version) not supported");
+          if (version == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+          if (this._parent != null && this._parent.UseIdentityConfiguration)
+          {  
+             throw new NotImplementedException("WrapTokenHandlersAsSecurityTokenSerializer not supported in .NET Core");
+             //return this.WrapTokenHandlersAsSecurityTokenSerializer(version);
+          }
+          MessageSecurityTokenVersion securityTokenVersion = version as MessageSecurityTokenVersion;
+          if (securityTokenVersion != null)
+          {  
+            return (SecurityTokenSerializer) new WSSecurityTokenSerializer(securityTokenVersion.SecurityVersion, securityTokenVersion.TrustVersion, securityTokenVersion.SecureConversationVersion, securityTokenVersion.EmitBspRequiredAttributes, (SamlSerializer1) null, (SecurityStateEncoder) null, (IEnumerable<System.Type>) null);
+          }
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("SecurityTokenManagerCannotCreateSerializerForVersion", new object[1]
+          {
+            (object) version
+          })));
         }
+#endregion
 
         private X509SecurityTokenAuthenticator CreateServerX509TokenAuthenticator()
         {

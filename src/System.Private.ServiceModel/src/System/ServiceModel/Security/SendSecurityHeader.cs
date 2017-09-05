@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace System.ServiceModel.Security
 {
-    internal abstract class SendSecurityHeader : SecurityHeader, IMessageHeaderWithSharedNamespace
+    public abstract class SendSecurityHeader : SecurityHeader, IMessageHeaderWithSharedNamespace
     {
         protected SendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
@@ -44,5 +44,42 @@ namespace System.ServiceModel.Security
         {
             throw ExceptionHelper.PlatformNotSupported();
         }
+        
+#region FromWCF
+        // Trim for testing...
+        /*public MessagePartSpecification SignatureParts
+        {
+          get
+          {
+            return this.signatureParts;
+          }
+          set
+          {
+            this.ThrowIfProcessingStarted();
+            if (value == null)
+              throw TraceUtility.ThrowHelperError((Exception) new ArgumentNullException("value"), this.Message);
+            if (!value.IsReadOnly)
+              throw TraceUtility.ThrowHelperError((Exception) new InvalidOperationException(System.ServiceModel.SR.GetString("MessagePartSpecificationMustBeImmutable")), this.Message);
+            this.signatureParts = value;
+          }
+        }
+        
+        public MessagePartSpecification EncryptionParts
+        {
+          get
+          {
+            return this.encryptionParts;
+          }
+          set
+          {
+            this.ThrowIfProcessingStarted();
+            if (value == null)
+              throw TraceUtility.ThrowHelperError((Exception) new ArgumentNullException("value"), this.Message);
+            if (!value.IsReadOnly)
+              throw TraceUtility.ThrowHelperError((Exception) new InvalidOperationException(System.ServiceModel.SR.GetString("MessagePartSpecificationMustBeImmutable")), this.Message);
+            this.encryptionParts = value;
+          }
+        }*/
+#endregion
     }
 }

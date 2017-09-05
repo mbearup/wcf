@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace System.ServiceModel.Channels
 {
     // This class is sealed because the constructor could call Abort, which is virtual
-    internal sealed class ServiceChannel : CommunicationObject, IChannel, IClientChannel, IDuplexContextChannel, IOutputChannel, IRequestChannel, IServiceChannel
+    public sealed class ServiceChannel : CommunicationObject, IChannel, IClientChannel, IDuplexContextChannel, IOutputChannel, IRequestChannel, IServiceChannel
     {
         private int _activityCount = 0;
         private bool _allowInitializationUI = true;

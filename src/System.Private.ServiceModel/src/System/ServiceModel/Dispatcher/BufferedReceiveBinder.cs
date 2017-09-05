@@ -7,12 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.ServiceModel.Diagnostics;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.ServiceModel.Channels;
 using System.Threading;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal class BufferedReceiveBinder : IChannelBinder
+    public class BufferedReceiveBinder : IChannelBinder
     {
         private static Action<object> s_tryReceive = new Action<object>(BufferedReceiveBinder.TryReceive);
         private static AsyncCallback s_tryReceiveCallback = Fx.ThunkCallback(new AsyncCallback(TryReceiveCallback));
@@ -173,7 +174,7 @@ namespace System.ServiceModel.Dispatcher
             return _channelBinder.EndWaitForMessage(result);
         }
 
-        internal void InjectRequest(RequestContext requestContext)
+        public void InjectRequest(RequestContext requestContext)
         {
             // Reuse the existing requestContext
             _inputQueue.EnqueueAndDispatch(new RequestContextWrapper(requestContext));

@@ -6,9 +6,12 @@
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
+using System.IdentityModel.Policy;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 using System.Xml;
 
@@ -77,6 +80,103 @@ namespace System.ServiceModel.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.TrustDriverVersionDoesNotSupportSession));
             }
         }
+
+#if FEATURE_CORECLR
+        public virtual XmlElement CreateKeyTypeElement(SecurityKeyType keyType)
+        { 
+            throw new NotImplementedException("TrustDriver.CreateKeyTypeElement not implemented in .NET Core");
+        }
+
+        public virtual bool TryParseKeyTypeElement(XmlElement element, out SecurityKeyType keyType)
+        {
+            throw new NotImplementedException("TrustDriver.TryParseKeyTypeElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateRequiredClaimsElement(IEnumerable<XmlElement> claimsList)
+        {
+            throw new NotImplementedException("TrustDriver.CreateRequiredClaimsElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateCanonicalizationAlgorithmElement(string canonicalicationAlgorithm)
+        {
+            throw new NotImplementedException("TrustDriver.CreateCanonicalizationAlgorithmElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateEncryptWithElement(string encryptionAlgorithm)
+        {
+            throw new NotImplementedException("TrustDriver.CreateEncryptWithElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateEncryptionAlgorithmElement(string encryptionAlgorithm)
+        {
+            throw new NotImplementedException("TrustDriver.CreateEncryptionAlgorithmElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateKeySizeElement(int keySize)
+        {
+            throw new NotImplementedException("TrustDriver.CreateKeySizeElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateSignWithElement(string signatureAlgorithm)
+        {
+            throw new NotImplementedException("TrustDriver.CreateSignWithElement not implemented in .NET Core");
+        }
+
+        public virtual XmlElement CreateTokenTypeElement(string tokenTypeUri)
+        {
+           throw new NotImplementedException("TrustDriver.CreateTokenTypeElement not implemented in .NET Core");
+        }
+
+        public virtual Collection<XmlElement> ProcessUnknownRequestParameters(Collection<XmlElement> unknownRequestParameters, Collection<XmlElement> originalRequestParameters)
+        {
+           throw new NotImplementedException("TrustDriver.ProcessUnknownRequestParameters not implemented in .NET Core");
+        }
+
+        public virtual bool TryParseKeySizeElement(XmlElement element, out int keySize)
+        {
+           throw new NotImplementedException("TrustDriver.ProcessUnknownRequestParameters not implemented in .NET Core");
+        }
+
+        public virtual bool TryParseRequiredClaimsElement(XmlElement element, out Collection<XmlElement> requiredClaims)
+        {
+           throw new NotImplementedException("TrustDriver.ProcessUnknownRequestParameters not implemented in .NET Core");
+        }
+
+        public virtual bool TryParseTokenTypeElement(XmlElement element, out string tokenType)
+        {
+           throw new NotImplementedException("TrustDriver.ProcessUnknownRequestParameters not implemented in .NET Core");
+        }
+
+        internal virtual bool IsCanonicalizationAlgorithmElement(XmlElement element, out string canonicalizationAlgorithm)
+        {
+          canonicalizationAlgorithm = (string) null;
+          return false;
+        }
+
+        internal virtual bool IsEncryptWithElement(XmlElement element, out string encryptWithAlgorithm)
+        {
+          encryptWithAlgorithm = (string) null;
+          return false;
+        }
+
+    internal virtual bool IsEncryptionAlgorithmElement(XmlElement element, out string encryptionAlgorithm)
+    {
+      encryptionAlgorithm = (string) null;
+      return false;
+    }
+
+    internal virtual bool IsKeyWrapAlgorithmElement(XmlElement element, out string keyWrapAlgorithm)
+    {
+      keyWrapAlgorithm = (string) null;
+      return false;
+    }
+
+    internal virtual bool IsSignWithElement(XmlElement element, out string signatureAlgorithm)
+    {
+      signatureAlgorithm = (string) null;
+      return false;
+    }
+#endif
 
         public abstract string ComputedKeyAlgorithm { get; }
 

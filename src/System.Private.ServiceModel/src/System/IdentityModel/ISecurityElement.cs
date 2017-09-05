@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace System.IdentityModel
 {
-    internal interface ISecurityElement
+    public interface ISecurityElement
     {
         bool HasId { get; }
 

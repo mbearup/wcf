@@ -30,7 +30,7 @@ namespace System.ServiceModel.Diagnostics
         All = int.MaxValue
     }
 
-    internal static class MessageLogger
+    public static class MessageLogger
     {
         /// <summary>
         /// Property that guards the calls into the methods 

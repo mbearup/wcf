@@ -33,13 +33,13 @@ namespace System.ServiceModel.Security
             throw new PlatformNotSupportedException();
         }
 
-        internal MessageSecurityException(string message, Exception innerException, MessageFault fault)
+        public MessageSecurityException(string message, Exception innerException, MessageFault fault)
             : base(message, innerException)
         {
             _fault = fault;
         }
 
-        internal MessageSecurityException(String message, bool isReplay)
+        public MessageSecurityException(String message, bool isReplay)
             : base(message)
         {
             _isReplay = isReplay;

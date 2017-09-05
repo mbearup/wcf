@@ -30,6 +30,12 @@ namespace System
             return false;
         }
 
+        public static string GetString(string s, object o1 = null, object o2 = null, object o3 = null)
+        {
+            // Normally this would look up a region-specific version of this string...
+            return s;
+        }
+
         internal static string GetResourceString(string resourceKey, string defaultString)
         {
             string resourceString = null;

@@ -6,6 +6,8 @@
 using System.IdentityModel.Claims;
 using System.IdentityModel.Policy;
 using System.Runtime.Diagnostics;
+using System.IdentityModel.Tokens;
+using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Diagnostics
 {
@@ -20,7 +22,7 @@ namespace System.ServiceModel.Diagnostics
                 _traceName = traceName;
         }
 
-        internal override string EventId { get { return BuildEventId(_traceName); } }
+        public override string EventId { get { return BuildEventId(_traceName); } }
     }
 
     internal static class SecurityTraceRecordHelper
@@ -44,5 +46,33 @@ namespace System.ServiceModel.Diagnostics
         internal static void TraceSpnToSidMappingFailure(string spn, Exception e)
         {
         }
+#region fromwcf
+    internal static void TracePreviousSessionKeyDiscarded(SecurityToken previousSessionToken, SecurityToken currentSessionToken, EndpointAddress remoteAddress)
+    {}
+
+    internal static void TraceSessionKeyRenewed(SecurityToken newSessionToken, SecurityToken currentSessionToken, EndpointAddress remoteAddress)
+    {}
+
+    internal static void TraceCloseMessageSent(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+
+    internal static void TraceCloseResponseMessageSent(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+    
+    internal static void TraceSessionKeyRenewalFault(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+
+    internal static void TraceRemoteSessionAbortedFault(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+
+    internal static void TraceCloseResponseReceived(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+
+    internal static void TraceCloseMessageReceived(SecurityToken sessionToken, EndpointAddress remoteTarget)
+    {}
+
+    internal static void TraceMessage(Message message)
+    {}
+#endregion
     }
 }

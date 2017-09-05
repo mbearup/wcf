@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace System.ServiceModel.Security.Tokens
@@ -10,6 +10,7 @@ namespace System.ServiceModel.Security.Tokens
     public sealed class InitiatorServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
     {
         private HttpHeaders _httpHeaders;
+        private WebHeaderCollection webHeaderCollection;
 
         public InitiatorServiceModelSecurityTokenRequirement()
             : base()
@@ -29,6 +30,21 @@ namespace System.ServiceModel.Security.Tokens
             }
         }
 
+#region FROMWCF
+    internal WebHeaderCollection WebHeaders
+    {
+      get
+      {
+        return this.webHeaderCollection;
+      }
+      set
+      {
+        this.webHeaderCollection = value;
+      }
+    }
+
+#endregion
+        
         public Uri Via
         {
             get

@@ -8,9 +8,9 @@ using System.ServiceModel.Channels;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal static class ListenerBinder
+    public static class ListenerBinder
     {
-        internal static IListenerBinder GetBinder(IChannelListener listener, MessageVersion messageVersion)
+        public static IListenerBinder GetBinder(IChannelListener listener, MessageVersion messageVersion)
         {
             IChannelListener<IInputChannel> input = listener as IChannelListener<IInputChannel>;
             if (input != null)

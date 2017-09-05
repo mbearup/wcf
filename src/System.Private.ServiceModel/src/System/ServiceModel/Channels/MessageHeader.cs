@@ -183,7 +183,7 @@ namespace System.ServiceModel.Channels
             return new XmlObjectSerializerHeader(name, ns, value, serializer, mustUnderstand, actor, relay);
         }
 
-        internal static void GetHeaderAttributes(XmlDictionaryReader reader, MessageVersion version,
+        public static void GetHeaderAttributes(XmlDictionaryReader reader, MessageVersion version,
             out string actor, out bool mustUnderstand, out bool relay, out bool isReferenceParameter)
         {
             int attributeCount = reader.AttributeCount;
@@ -274,7 +274,7 @@ namespace System.ServiceModel.Channels
         }
     }
 
-    internal abstract class DictionaryHeader : MessageHeader
+    public abstract class DictionaryHeader : MessageHeader
     {
         public override string Name
         {

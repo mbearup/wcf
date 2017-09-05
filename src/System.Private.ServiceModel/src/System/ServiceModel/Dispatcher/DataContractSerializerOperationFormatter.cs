@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace System.ServiceModel.Dispatcher
 {
-    internal static class DataContractSerializerDefaults
+    public static class DataContractSerializerDefaults
     {
         internal const bool IgnoreExtensionDataObject = false;
         internal const int MaxItemsInObjectGraph = int.MaxValue;

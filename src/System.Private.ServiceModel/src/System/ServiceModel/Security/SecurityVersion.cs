@@ -24,12 +24,12 @@ namespace System.ServiceModel.Security
             _headerPrefix = headerPrefix;
         }
 
-        internal XmlDictionaryString HeaderName
+        public XmlDictionaryString HeaderName
         {
             get { return _headerName; }
         }
 
-        internal XmlDictionaryString HeaderNamespace
+        public XmlDictionaryString HeaderNamespace
         {
             get { return _headerNamespace; }
         }
@@ -39,17 +39,17 @@ namespace System.ServiceModel.Security
             get { return _headerPrefix; }
         }
 
-        internal abstract XmlDictionaryString FailedAuthenticationFaultCode
+        public abstract XmlDictionaryString FailedAuthenticationFaultCode
         {
             get;
         }
 
-        internal abstract XmlDictionaryString InvalidSecurityTokenFaultCode
+        public abstract XmlDictionaryString InvalidSecurityTokenFaultCode
         {
             get;
         }
 
-        internal abstract XmlDictionaryString InvalidSecurityFaultCode
+        public abstract XmlDictionaryString InvalidSecurityFaultCode
         {
             get;
         }
@@ -69,7 +69,7 @@ namespace System.ServiceModel.Security
             get { return SecurityVersion11.Instance; }
         }
 
-        internal static SecurityVersion Default
+        public static SecurityVersion Default
         {
             get { return WSSecurity11; }
         }
@@ -81,23 +81,23 @@ namespace System.ServiceModel.Security
             MessageDirection direction,
             int headerIndex);
 
-        internal abstract SendSecurityHeader CreateSendSecurityHeader(Message message,
+        public abstract SendSecurityHeader CreateSendSecurityHeader(Message message,
             string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
             SecurityAlgorithmSuite algorithmSuite,
             MessageDirection direction);
 
-        internal bool DoesMessageContainSecurityHeader(Message message)
+        public bool DoesMessageContainSecurityHeader(Message message)
         {
             return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value) >= 0;
         }
 
-        internal int FindIndexOfSecurityHeader(Message message, string[] actors)
+        public int FindIndexOfSecurityHeader(Message message, string[] actors)
         {
             return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, actors);
         }
 
-        internal virtual bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)
+        public virtual bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)
         {
             return false;
         }
@@ -110,7 +110,7 @@ namespace System.ServiceModel.Security
 
         // The security always look for Empty soap role.  If not found, we will also look for Ultimate actors (next incl).
         // In the future, till we support intermediary scenario, we should refactor this api to do not take actor parameter.
-        internal ReceiveSecurityHeader TryCreateReceiveSecurityHeader(Message message,
+        public ReceiveSecurityHeader TryCreateReceiveSecurityHeader(Message message,
             string actor,
             SecurityStandardsManager standardsManager,
             SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
@@ -138,7 +138,7 @@ namespace System.ServiceModel.Security
                 SR.SignatureConfirmationNotSupported));
         }
 
-        internal void WriteStartHeader(XmlDictionaryWriter writer)
+        public void WriteStartHeader(XmlDictionaryWriter writer)
         {
             writer.WriteStartElement(this.HeaderPrefix.Value, this.HeaderName, this.HeaderNamespace);
         }
@@ -157,22 +157,22 @@ namespace System.ServiceModel.Security
                 get { return s_instance; }
             }
 
-            internal override XmlDictionaryString FailedAuthenticationFaultCode
+            public override XmlDictionaryString FailedAuthenticationFaultCode
             {
                 get { return XD.SecurityJan2004Dictionary.FailedAuthenticationFaultCode; }
             }
 
-            internal override XmlDictionaryString InvalidSecurityTokenFaultCode
+            public override XmlDictionaryString InvalidSecurityTokenFaultCode
             {
                 get { return XD.SecurityJan2004Dictionary.InvalidSecurityTokenFaultCode; }
             }
 
-            internal override XmlDictionaryString InvalidSecurityFaultCode
+            public override XmlDictionaryString InvalidSecurityFaultCode
             {
                 get { return XD.SecurityJan2004Dictionary.InvalidSecurityFaultCode; }
             }
 
-            internal override SendSecurityHeader CreateSendSecurityHeader(Message message,
+            public override SendSecurityHeader CreateSendSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
                 SecurityStandardsManager standardsManager,
                 SecurityAlgorithmSuite algorithmSuite,
@@ -234,7 +234,7 @@ namespace System.ServiceModel.Security
                     algorithmSuite, headerIndex, direction);
             }
 
-            internal override SendSecurityHeader CreateSendSecurityHeader(Message message,
+            public override SendSecurityHeader CreateSendSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
                 SecurityStandardsManager standardsManager,
                 SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
@@ -242,7 +242,7 @@ namespace System.ServiceModel.Security
                 return new WSSecurityOneDotOneSendSecurityHeader(message, actor, mustUnderstand, relay, standardsManager, algorithmSuite, direction);
             }
 
-            internal override bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)
+            public override bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)
             {
                 return reader.IsStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
             }

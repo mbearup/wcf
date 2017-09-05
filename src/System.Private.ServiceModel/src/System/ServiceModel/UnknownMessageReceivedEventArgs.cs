@@ -11,7 +11,7 @@ namespace System.ServiceModel
     {
         private Message _message;
 
-        internal UnknownMessageReceivedEventArgs(Message message)
+        public UnknownMessageReceivedEventArgs(Message message)
         {
             _message = message;
         }

@@ -10,7 +10,7 @@ namespace System.ServiceModel
     /// <summary>
     /// An interface used by ChannelBase to override the ServiceChannel that would normally be returned by ClientBase. 
     /// </summary>
-    internal interface IChannelBaseProxy
+    public interface IChannelBaseProxy
     {
         ServiceChannel GetServiceChannel();
     }

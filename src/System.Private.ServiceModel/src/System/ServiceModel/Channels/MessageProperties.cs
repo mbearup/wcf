@@ -78,7 +78,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal bool CanRecycle
+        public bool CanRecycle
         {
             get
             {
@@ -523,7 +523,7 @@ namespace System.ServiceModel.Channels
             return NotFoundIndex;
         }
 
-        internal void Recycle()
+        public void Recycle()
         {
             _disposed = false;
             Clear();
