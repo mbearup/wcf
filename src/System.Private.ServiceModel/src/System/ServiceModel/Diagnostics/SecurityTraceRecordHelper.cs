@@ -73,6 +73,18 @@ namespace System.ServiceModel.Diagnostics
 
     internal static void TraceMessage(Message message)
     {}
+
+    internal static void TraceOutgoingMessageSecured(object o, Message m)
+    {}
+
+    internal static void TraceSecureOutgoingMessageFailure(object o, Message m)
+    {}
+
+    internal static void TraceIncomingMessageVerified(object o, Message m)
+    {}
+
+    internal static void TraceVerifyIncomingMessageFailure(object o, Message m)
+    {}
 #endregion
     }
 }

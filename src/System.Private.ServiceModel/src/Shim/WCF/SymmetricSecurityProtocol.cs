@@ -59,14 +59,14 @@ namespace System.ServiceModel.Security
         this.CommunicationObject.ThrowIfNotOpened();
         return this.initiatorTokenAuthenticator;
       }
-    }
+    }*/
 
     public SymmetricSecurityProtocol(SymmetricSecurityProtocolFactory factory, EndpointAddress target, Uri via)
       : base((MessageSecurityProtocolFactory) factory, target, via)
     {
     }
 
-    private InitiatorServiceModelSecurityTokenRequirement CreateInitiatorTokenRequirement()
+    /*private InitiatorServiceModelSecurityTokenRequirement CreateInitiatorTokenRequirement()
     {
       InitiatorServiceModelSecurityTokenRequirement tokenRequirement = this.CreateInitiatorSecurityTokenRequirement();
       this.Factory.SecurityTokenParameters.InitializeSecurityTokenRequirement((SecurityTokenRequirement) tokenRequirement);

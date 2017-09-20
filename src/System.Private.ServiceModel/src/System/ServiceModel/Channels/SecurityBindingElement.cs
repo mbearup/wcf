@@ -36,9 +36,12 @@ namespace System.ServiceModel.Channels
         private XmlDictionaryReaderQuotas _readerQuotas;
         private bool _protectTokens = defaultProtectTokens;
 #region fromwcf
+        private SupportingTokenParameters optionalEndpointSupportingTokenParameters;
         internal static readonly SecurityAlgorithmSuite defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
         private SecurityAlgorithmSuite _defaultAlgorithmSuite;
         private SecurityKeyEntropyMode keyEntropyMode;
+        private Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
+        private Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
 #endregion
 
         internal SecurityBindingElement()
@@ -48,6 +51,9 @@ namespace System.ServiceModel.Channels
             _includeTimestamp = defaultIncludeTimestamp;
             _localClientSettings = new LocalClientSecuritySettings();
             _endpointSupportingTokenParameters = new SupportingTokenParameters();
+            optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
+            operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             _securityHeaderLayout = SecurityProtocolFactory.defaultSecurityHeaderLayout;
             _localServiceSettings = new LocalServiceSecuritySettings();
             _defaultAlgorithmSuite = SecurityBindingElement.defaultDefaultAlgorithmSuite;
@@ -62,6 +68,13 @@ namespace System.ServiceModel.Channels
             _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
             _endpointSupportingTokenParameters = elementToBeCloned._endpointSupportingTokenParameters.Clone();
+            optionalEndpointSupportingTokenParameters = elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
+            this.operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned.operationSupportingTokenParameters.Keys)
+                this.operationSupportingTokenParameters[key] = elementToBeCloned.operationSupportingTokenParameters[key].Clone();
+            this.optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned.optionalOperationSupportingTokenParameters.Keys)
+                this.optionalOperationSupportingTokenParameters[key] = elementToBeCloned.optionalOperationSupportingTokenParameters[key].Clone();
             _localClientSettings = elementToBeCloned._localClientSettings.Clone();
             _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
             _readerQuotas = elementToBeCloned._readerQuotas;
@@ -70,6 +83,55 @@ namespace System.ServiceModel.Channels
         }
 
 #region FromWCF
+    public SupportingTokenParameters OptionalEndpointSupportingTokenParameters
+    {
+      get
+      {
+        return this.optionalEndpointSupportingTokenParameters;
+      }
+    }
+
+    public IDictionary<string, SupportingTokenParameters> OperationSupportingTokenParameters
+    {
+      get
+      {
+        return (IDictionary<string, SupportingTokenParameters>) this.operationSupportingTokenParameters;
+      }
+    }
+
+    public IDictionary<string, SupportingTokenParameters> OptionalOperationSupportingTokenParameters
+    {
+      get
+      {
+        return (IDictionary<string, SupportingTokenParameters>) this.optionalOperationSupportingTokenParameters;
+      }
+    }
+
+    public void SetEndpointSupportingTokenParametersIfNull()
+    {
+        Console.WriteLine("TODO - SupportingTokenParameters should be instantiated automatically");
+        if (_endpointSupportingTokenParameters == null)
+        {
+            Console.WriteLine("_endpointSupportingTokenParameters is null. Instantiating");
+            _endpointSupportingTokenParameters = new SupportingTokenParameters();
+        }
+        if (optionalEndpointSupportingTokenParameters == null)
+        {
+            Console.WriteLine("optionalEndpointSupportingTokenParameters is null. Instantiating");
+            optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
+        }
+        if (operationSupportingTokenParameters == null)
+        {
+            Console.WriteLine("operationSupportingTokenParameters is null. Instantiating");
+            operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+        }
+        if (optionalOperationSupportingTokenParameters == null)
+        {
+            Console.WriteLine("optionalOperationSupportingTokenParameters is null. Instantiating");
+            optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+        }
+    }
+    
     internal void ApplyAuditBehaviorSettings(BindingContext context, SecurityProtocolFactory factory)
     {
         Console.WriteLine("TODO - skipping ApplyAuditBehaviorSettings");
@@ -163,7 +225,7 @@ namespace System.ServiceModel.Channels
           factory.NonceCache = this.LocalServiceSettings.NonceCache;
       }
       factory.SecurityBindingElement = (SecurityBindingElement) this.Clone();
-      Console.WriteLine("Skipping SecurityBindingElement.SetIssuerBindingContextIfRequired");
+      Console.WriteLine("TODO - Skipping SecurityBindingElement.SetIssuerBindingContextIfRequired");
       // factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
       factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
       SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this._messageSecurityVersion.SecurityTokenVersion);
@@ -184,7 +246,7 @@ namespace System.ServiceModel.Channels
       if (security == null)
         return (ChannelProtectionRequirements) null;
       ChannelProtectionRequirements requirements = (ChannelProtectionRequirements) null;
-      Console.WriteLine("Skipping AsymmetricSecurityBindingElement because it's not supported");
+      Console.WriteLine("TODO - Skipping AsymmetricSecurityBindingElement because it's not supported");
 //      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
       if (security is SymmetricSecurityBindingElement)
       {
@@ -554,6 +616,10 @@ namespace System.ServiceModel.Channels
         {
             get
             {
+                if (_endpointSupportingTokenParameters == null)
+                {
+                    Console.WriteLine("Getting _endpointSupportingTokenParameters but it's NULL");
+                }
                 return _endpointSupportingTokenParameters;
             }
         }
@@ -673,7 +739,52 @@ namespace System.ServiceModel.Channels
 
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {
-            throw ExceptionHelper.PlatformNotSupported("SetIssuerBindingContextIfRequired is not supported.");
+            if (parameters is SslSecurityTokenParameters)
+            {
+                ((SslSecurityTokenParameters) parameters).IssuerBindingContext = SecurityBindingElement.CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+                return;
+            }
+            else
+            {
+              if (!(parameters is SspiSecurityTokenParameters))
+              {
+                return;
+              }
+              ((SspiSecurityTokenParameters) parameters).IssuerBindingContext = SecurityBindingElement.CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+            }
+        }
+        
+        private static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
+        {
+          TransportBindingElement transportBindingElement = issuerBindingContext.RemainingBindingElements.Find<TransportBindingElement>();
+          if (transportBindingElement == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("TransportBindingElementNotFound")));
+          ChannelDemuxerBindingElement demuxerBindingElement = (ChannelDemuxerBindingElement) null;
+          for (int index = 0; index < issuerBindingContext.RemainingBindingElements.Count; ++index)
+          {
+            if (issuerBindingContext.RemainingBindingElements[index] is ChannelDemuxerBindingElement)
+              demuxerBindingElement = (ChannelDemuxerBindingElement) issuerBindingContext.RemainingBindingElements[index];
+          }
+          Console.WriteLine("TODO - add ChannelDemuxerBindingElement");
+          // if (demuxerBindingElement == null)
+          //   throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ChannelDemuxerBindingElementNotFound")));
+          BindingElementCollection bindingElements = new BindingElementCollection();
+          // bindingElements.Add(demuxerBindingElement.Clone());
+          bindingElements.Add(transportBindingElement.Clone());
+          CustomBinding binding = new CustomBinding(bindingElements);
+          binding.OpenTimeout = issuerBindingContext.Binding.OpenTimeout;
+          binding.CloseTimeout = issuerBindingContext.Binding.CloseTimeout;
+          binding.SendTimeout = issuerBindingContext.Binding.SendTimeout;
+          binding.ReceiveTimeout = issuerBindingContext.Binding.ReceiveTimeout;
+          if (issuerBindingContext.ListenUriBaseAddress != (Uri) null)
+          {
+#if FEATURE_CORECLR
+            throw new NotImplementedException("BindingContext constructor with five parameters not supported");
+#else
+            return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters), issuerBindingContext.ListenUriBaseAddress, issuerBindingContext.ListenUriRelativeAddress, issuerBindingContext.ListenUriMode);
+#endif
+          }
+          return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters));
         }
 
         internal bool RequiresChannelDemuxer(SecurityTokenParameters parameters)

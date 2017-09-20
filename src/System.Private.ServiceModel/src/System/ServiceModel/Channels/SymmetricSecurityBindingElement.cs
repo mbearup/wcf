@@ -115,6 +115,7 @@ namespace System.ServiceModel.Channels
     /// <summary>Initializes a new instance of the <see cref="T:System.ServiceModel.Channels.SymmetricSecurityBindingElement" /> class using specified security token parameters. </summary>
     /// <param name="protectionTokenParameters">The <see cref="T:System.ServiceModel.Security.Tokens.SecurityTokenParameters" />.</param>
     public SymmetricSecurityBindingElement(SecurityTokenParameters protectionTokenParameters)
+      : base()
     {
       this.messageProtectionOrder = MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature;
       this.requireSignatureConfirmation = false;

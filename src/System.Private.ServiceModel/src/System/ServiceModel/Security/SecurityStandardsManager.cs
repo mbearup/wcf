@@ -36,6 +36,10 @@ namespace System.ServiceModel.Security
           }
         }
 
+        internal bool DoesMessageContainSecurityHeader(Message message)
+        {
+          return this.SecurityVersion.DoesMessageContainSecurityHeader(message);
+        }
 #endif
 #pragma warning restore 0649
 
@@ -47,8 +51,10 @@ namespace System.ServiceModel.Security
         }
 
         public SecurityStandardsManager(SecurityTokenSerializer tokenSerializer)
-            : this(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenSerializer)
+            // : this(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenSerializer)
+            : this(MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12, tokenSerializer)
         {
+            Console.WriteLine("TODO - Keep WSTrust13? if so remove above comment.");
         }
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
@@ -78,6 +84,10 @@ namespace System.ServiceModel.Security
         }
 
 #if FEATURE_CORECLR
+        internal SendSecurityHeader CreateSendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
+        {
+          return this.SecurityVersion.CreateSendSecurityHeader(message, actor, mustUnderstand, relay, this, algorithmSuite, direction);
+        }
 
         private WSSecurityTokenSerializer WSSecurityTokenSerializer
         {

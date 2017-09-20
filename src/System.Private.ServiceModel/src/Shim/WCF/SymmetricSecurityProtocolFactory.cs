@@ -119,9 +119,7 @@ namespace System.ServiceModel.Security
 
     protected override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, object listenerSecurityState, TimeSpan timeout)
     {
-      // Trim for testing...
-      throw new NotImplementedException();      
-      // return (SecurityProtocol) new SymmetricSecurityProtocol(this, target, via);
+      return (SecurityProtocol) new SymmetricSecurityProtocol(this, target, via);
     }
 
     private RecipientServiceModelSecurityTokenRequirement CreateRecipientTokenRequirement()

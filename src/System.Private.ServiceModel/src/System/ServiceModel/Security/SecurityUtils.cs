@@ -402,7 +402,7 @@ namespace System.ServiceModel.Security
       get
       {
 #if FEATURE_CORECLR
-        throw new NotImplementedException("Registry is not supported in .NET Core");
+        return false;
 #else
         return (uint) (SecurityUtils.GetSuppressChannelBindingValue() & 1) > 0U;
 #endif
@@ -412,7 +412,7 @@ namespace System.ServiceModel.Security
     internal static bool IsSecurityBindingSuitableForChannelBinding(TransportSecurityBindingElement securityBindingElement)
     {
 #if FEATURE_CORECLR
-      throw new NotImplementedException("SupportingTokenParameters.Signed is not supported in .NET Core");
+      return true;
 #else
       return securityBindingElement != null && (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Endorsing) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.Signed) || (SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEncrypted) || SecurityUtils.AreSecurityTokenParametersSuitableForChannelBinding(securityBindingElement.EndpointSupportingTokenParameters.SignedEndorsing)));
 #endif

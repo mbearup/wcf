@@ -80,11 +80,11 @@ namespace System.ServiceModel.Channels
     }
 
 #region Fromwcf
-        protected internal override Task OnOpenAsync(TimeSpan timeout)
-        {
-            this.OnOpen(timeout);
-            return TaskHelpers.CompletedTask();
-        }
+    protected internal override Task OnOpenAsync(TimeSpan timeout)
+    {
+        this.OnOpen(timeout);
+        return TaskHelpers.CompletedTask();
+    }
 #endregion
 
     public SecurityChannelFactory(ISecurityCapabilities securityCapabilities, BindingContext context, SecuritySessionClientSettings<TChannel> sessionClientSettings)
@@ -212,7 +212,7 @@ namespace System.ServiceModel.Channels
       if (typeof (TChannel) == typeof (IRequestChannel))
       {
         var ret = new SecurityChannelFactory<TChannel>.SecurityRequestChannel((ChannelManagerBase) this, this.securityProtocolFactory, ((IChannelFactory<IRequestChannel>) this.InnerChannelFactory).CreateChannel(address, via), address, via);
-        return (TChannel) Convert.ChangeType(ret, typeof(TChannel));
+        return (TChannel)(object)ret;
       }
       var retFinal = new SecurityChannelFactory<TChannel>.SecurityRequestSessionChannel((ChannelManagerBase) this, this.securityProtocolFactory, ((IChannelFactory<IRequestSessionChannel>) this.InnerChannelFactory).CreateChannel(address, via), address, via);
       return (TChannel) Convert.ChangeType(retFinal, typeof(TChannel));
@@ -326,6 +326,14 @@ namespace System.ServiceModel.Channels
         }
       }
 
+#region FromWCF
+      protected internal override Task OnOpenAsync(TimeSpan timeout)
+      {
+        this.OnOpen(timeout);
+        return TaskHelpers.CompletedTask();
+      }
+#endregion
+
       protected ClientSecurityChannel(ChannelManagerBase factory, SecurityProtocolFactory securityProtocolFactory, UChannel innerChannel, EndpointAddress to, Uri via)
         : base(factory, innerChannel)
       {
@@ -358,15 +366,11 @@ namespace System.ServiceModel.Channels
 
       protected override void OnOpen(TimeSpan timeout)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SecurityProtocol.Open is not supported in .NET Core");
-#else
         TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
         this.EnableChannelBindingSupport();
         this.OnProtocolCreationComplete(this.SecurityProtocolFactory.CreateSecurityProtocol(this.to, this.Via, (object) null, typeof (TChannel) == typeof (IRequestChannel), timeoutHelper.RemainingTime()));
         this.SecurityProtocol.Open(timeoutHelper.RemainingTime());
         base.OnOpen(timeoutHelper.RemainingTime());
-#endif
       }
 
       private void EnableChannelBindingSupport()
@@ -383,12 +387,8 @@ namespace System.ServiceModel.Channels
 
       private void OnProtocolCreationComplete(SecurityProtocol securityProtocol)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SecurityProtocol.ChannelParameters is not supported in .NET Core");
-#else
         this.SecurityProtocol = securityProtocol;
         this.SecurityProtocol.ChannelParameters = this.channelParameters;
-#endif
       }
 
       public override T GetProperty<T>()

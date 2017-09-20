@@ -15,10 +15,12 @@ namespace System.ServiceModel.Channels
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
+            Console.WriteLine("ChannelBuilder constructor");
             _context = context;
             if (addChannelDemuxerIfRequired)
             {
-                throw ExceptionHelper.PlatformNotSupported();
+                // throw ExceptionHelper.PlatformNotSupported();
+                this.AddDemuxerBindingElement(context.RemainingBindingElements);
             }
             _binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
             _bindingParameters = context.BindingParameters;
@@ -30,9 +32,22 @@ namespace System.ServiceModel.Channels
             _bindingParameters = bindingParameters;
             if (addChannelDemuxerIfRequired)
             {
-                throw ExceptionHelper.PlatformNotSupported();
+                // throw ExceptionHelper.PlatformNotSupported();
+                this.AddDemuxerBindingElement(_binding.Elements);
             }
         }
+        
+#region FROMWCF
+    private void AddDemuxerBindingElement(BindingElementCollection elements)
+    {
+      if (elements.Find<ChannelDemuxerBindingElement>() != null)
+        return;
+      TransportBindingElement transportBindingElement = elements.Find<TransportBindingElement>();
+      if (transportBindingElement == null)
+        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("TransportBindingElementNotFound")));
+      elements.Insert(elements.IndexOf((BindingElement) transportBindingElement), (BindingElement) new ChannelDemuxerBindingElement(true));
+    }
+#endregion
 
         public ChannelBuilder(ChannelBuilder channelBuilder)
         {

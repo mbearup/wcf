@@ -38,6 +38,10 @@ namespace System.ServiceModel.Security
         private object _appliesTo;
         private DataContractSerializer _appliesToSerializer;
         private Type _appliesToType;
+        
+#region FROMWCF
+        private SecurityToken entropyToken;
+#endregion
 
         private object _thisLock = new Object();
 
@@ -138,6 +142,16 @@ namespace System.ServiceModel.Security
             _isReadOnly = false;
         }
 
+#region FROMWCF
+        public void SetRequestorEntropy(byte[] entropy)
+        {
+          if (this.IsReadOnly)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ObjectIsReadOnly")));
+          this.entropyToken = entropy != null ? (SecurityToken) new NonceToken(entropy) : (SecurityToken) null;
+        }
+
+#endregion
+        
         public ChannelBinding GetChannelBinding()
         {
             if (_message == null)
@@ -430,7 +444,7 @@ namespace System.ServiceModel.Security
                 return _standardsManager.TrustDriver.GetEntropy(this, resolver);
             }
             else
-                return null;
+                return this.entropyToken;
         }
 
         public void SetAppliesTo<T>(T appliesTo, DataContractSerializer serializer)

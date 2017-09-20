@@ -47,5 +47,19 @@ namespace System.ServiceModel.Channels
             Fx.Assert(true, "Should not be called unless this binding element is used in one of the standard bindings. In which case, please re-implement the IsMatch() method.");
             return false;
         }
+        
+#region FromWCF
+        public virtual IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context) where TChannel : class, IChannel
+        {
+            throw new NotImplementedException("This function should be implemented in derived classes");
+        }
+        
+        public virtual bool CanBuildChannelListener<TChannel>(BindingContext context) where TChannel : class, IChannel
+        {
+          if (context == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+          return context.CanBuildInnerChannelListener<TChannel>();
+        }      
+#endregion
     }
 }

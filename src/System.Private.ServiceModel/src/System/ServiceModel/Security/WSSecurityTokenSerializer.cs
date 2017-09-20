@@ -24,6 +24,17 @@ namespace System.ServiceModel.Security
         private static WSSecurityTokenSerializer s_instance;
         private readonly List<TokenEntry> _tokenEntries = new List<TokenEntry>();
 
+#region FROMWCF
+        private int maximumKeyDerivationOffset;
+        private int maximumKeyDerivationLabelLength;
+        private int maximumKeyDerivationNonceLength;
+        private readonly bool emitBspRequiredAttributes;
+        private readonly List<WSSecurityTokenSerializer.SerializerEntries> serializerEntries;
+        private readonly SecurityVersion securityVersion;
+        private WSSecureConversation secureConversation;
+        // private KeyInfoSerializer keyInfoSerializer;
+#endregion
+        
         public WSSecurityTokenSerializer()
             : this(SecurityVersion.WSSecurity11)
         {
@@ -68,9 +79,78 @@ namespace System.ServiceModel.Security
         public WSSecurityTokenSerializer(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, bool emitBspRequiredAttributes, SamlSerializer1 samlSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maximumKeyDerivationOffset, int maximumKeyDerivationLabelLength, int maximumKeyDerivationNonceLength)
         {
-#if !FEATURE_CORECLR
-            throw ExceptionHelper.PlatformNotSupported();
-#endif
+          if (securityVersion == null)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("securityVersion"));
+          if (maximumKeyDerivationOffset < 0)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("maximumKeyDerivationOffset", SR.GetString("ValueMustBeNonNegative")));
+          if (maximumKeyDerivationLabelLength < 0)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("maximumKeyDerivationLabelLength", SR.GetString("ValueMustBeNonNegative")));
+          if (maximumKeyDerivationNonceLength <= 0)
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("maximumKeyDerivationNonceLength", SR.GetString("ValueMustBeGreaterThanZero")));
+          this.securityVersion = securityVersion;
+          this.emitBspRequiredAttributes = emitBspRequiredAttributes;
+          this.maximumKeyDerivationOffset = maximumKeyDerivationOffset;
+          this.maximumKeyDerivationNonceLength = maximumKeyDerivationNonceLength;
+          this.maximumKeyDerivationLabelLength = maximumKeyDerivationLabelLength;
+          this.serializerEntries = new List<WSSecurityTokenSerializer.SerializerEntries>();
+          if (secureConversationVersion == SecureConversationVersion.WSSecureConversationFeb2005)
+          {
+            Console.WriteLine("TODO - Skipping WSSecureConversationFeb2005");
+            // this.secureConversation = (WSSecureConversation) new WSSecureConversationFeb2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
+          }
+          else
+          {
+            Console.WriteLine("TODO - Skipping WSSecureConversation13");
+            // if (secureConversationVersion != SecureConversationVersion.WSSecureConversation13)
+            //   throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException());
+            // this.secureConversation = (WSSecureConversation) new WSSecureConversationDec2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
+          }
+          if (securityVersion == SecurityVersion.WSSecurity10)
+          {
+            Console.WriteLine("TODO - skipping serializerEntries for WSSecurity10)");
+            // this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSSecurityJan2004(this, samlSerializer));
+          }
+          else
+          {
+            Console.WriteLine("TODO - skipping serializerEntries for WSSecurity11");
+            // if (securityVersion != SecurityVersion.WSSecurity11)
+            //   throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("securityVersion", SR.GetString("MessageSecurityVersionOutOfRange")));
+            // this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSSecurityXXX2005(this, samlSerializer));
+          }
+          this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) this.secureConversation);
+          System.IdentityModel.TrustDictionary trustDictionary;
+          if (trustVersion == TrustVersion.WSTrustFeb2005)
+          {
+            this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSTrustFeb2005(this));
+            trustDictionary = (System.IdentityModel.TrustDictionary) new System.IdentityModel.TrustFeb2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.TrustDec2005Dictionary.Feb2005DictionaryStrings));
+          }
+          else
+          {
+            if (trustVersion != TrustVersion.WSTrust13)
+              throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException());
+            this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSTrustDec2005(this));
+            trustDictionary = (System.IdentityModel.TrustDictionary) new System.IdentityModel.TrustDec2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.TrustDec2005Dictionary.Dec2005DictionaryString));
+          }
+          this._tokenEntries = new List<WSSecurityTokenSerializer.TokenEntry>();
+          for (int index = 0; index < this.serializerEntries.Count; ++index)
+          {
+            if (serializerEntries[index] == null)
+            {
+                Console.WriteLine("Entry {0} is NULL", index);
+            }
+            else
+            {
+                Console.WriteLine("Entry {0} is {1}", index, serializerEntries[index].GetType().ToString());
+                this.serializerEntries[index].PopulateTokenEntries((IList<WSSecurityTokenSerializer.TokenEntry>) this._tokenEntries);
+            }
+            
+          }
+          Console.WriteLine("Skipping WSSecurityTokenSerializer.keyInfoSerializer instantiation");
+          /*this.keyInfoSerializer = (KeyInfoSerializer) new WSKeyInfoSerializer(this.emitBspRequiredAttributes, new DictionaryManager((IXmlDictionary) ServiceModelDictionary.CurrentVersion)
+          {
+            SecureConversationDec2005Dictionary = new System.IdentityModel.SecureConversationDec2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.SecureConversationDec2005Dictionary.SecureConversationDictionaryStrings)),
+            SecurityAlgorithmDec2005Dictionary = new System.IdentityModel.SecurityAlgorithmDec2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.SecurityAlgorithmDec2005Dictionary.SecurityAlgorithmDictionaryStrings))
+          }, trustDictionary, (SecurityTokenSerializer) this, securityVersion, secureConversationVersion);*/
         }
 
         public static WSSecurityTokenSerializer DefaultInstance
@@ -169,7 +249,34 @@ namespace System.ServiceModel.Security
 
         protected override void WriteTokenCore(XmlWriter writer, SecurityToken token)
         {
-            throw ExceptionHelper.PlatformNotSupported();
+          bool flag = false;
+          XmlDictionaryWriter dictionaryWriter = XmlDictionaryWriter.CreateDictionaryWriter(writer);
+          if (token.GetType() == typeof (ProviderBackedSecurityToken))
+            token = (token as ProviderBackedSecurityToken).Token;
+          for (int index = 0; index < this._tokenEntries.Count; ++index)
+          {
+            WSSecurityTokenSerializer.TokenEntry tokenEntry = this._tokenEntries[index];
+            if (tokenEntry.SupportsCore(token.GetType()))
+            {
+              try
+              {
+                tokenEntry.WriteTokenCore(dictionaryWriter, token);
+              }
+              catch (Exception ex)
+              {
+                if (this.ShouldWrapException(ex))
+                  throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new XmlException(SR.GetString("ErrorSerializingSecurityToken"), ex));
+                throw;
+              }
+              flag = true;
+              break;
+            }
+          }
+          if (!flag)
+          {
+            throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("StandardsManagerCannotWriteObject", new object[1]{ (object) token.GetType() })));
+          }
+          dictionaryWriter.Flush();
         }
 
         protected override bool CanReadKeyIdentifierCore(XmlReader reader)

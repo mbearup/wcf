@@ -404,12 +404,8 @@ namespace System.ServiceModel.Security
       securityProtocolFactory1.PrivacyNoticeVersion = this.privacyNoticeVersion;
       if (this.localAddress != (EndpointAddress) null)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("MessageFilter not supported in .NET Core");
-#else
         MessageFilter filter = (MessageFilter) new SessionActionFilter(this.standardsManager, new string[2]{ this.IssueResponseAction.Value, this.RenewResponseAction.Value });
         issuerBindingContext.BindingParameters.Add((object) new LocalAddressProvider(this.localAddress, filter));
-#endif
       }
       ChannelBuilder channelBuilder = new ChannelBuilder(issuerBindingContext, true);
       IChannelFactory<IRequestChannel> channelFactory;
@@ -610,13 +606,9 @@ namespace System.ServiceModel.Security
       requestSecurityToken.TokenType = this.sctUri;
       if (this.KeyEntropyMode == SecurityKeyEntropyMode.ClientEntropy || this.KeyEntropyMode == SecurityKeyEntropyMode.CombinedEntropy)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("RequestSecurityToken.SetRequestorEntropy is not supported in .NET Core");
-#else
         byte[] entropy = this.GenerateEntropy(requestSecurityToken.KeySize);
         requestSecurityToken.SetRequestorEntropy(entropy);
         requestState = (object) entropy;
-#endif
       }
       else
         requestState = (object) null;

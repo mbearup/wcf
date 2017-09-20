@@ -21,10 +21,10 @@ namespace System.ServiceModel.Security
   internal abstract class MessageSecurityProtocol : SecurityProtocol
   {
 // Trim for testing...
-/*
+
     private readonly MessageSecurityProtocolFactory factory;
     private SecurityToken identityVerifiedToken;
-
+/*
     protected virtual bool CacheIdentityCheckResultForToken
     {
       get
@@ -67,7 +67,7 @@ namespace System.ServiceModel.Security
       {
         return this.factory;
       }
-    }
+    }*/
 
     protected MessageSecurityProtocol(MessageSecurityProtocolFactory factory, EndpointAddress target, Uri via)
       : base((SecurityProtocolFactory) factory, target, via)
@@ -75,7 +75,7 @@ namespace System.ServiceModel.Security
       this.factory = factory;
     }
 
-    protected bool RequiresIncomingSecurityProcessing(Message message)
+    /*protected bool RequiresIncomingSecurityProcessing(Message message)
     {
       if (this.factory.ActAsInitiator && this.factory.SecurityBindingElement.EnableUnsecuredResponse && !this.factory.StandardsManager.SecurityVersion.DoesMessageContainSecurityHeader(message))
         return false;

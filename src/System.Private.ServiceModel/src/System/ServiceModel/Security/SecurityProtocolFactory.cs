@@ -47,6 +47,7 @@ namespace System.ServiceModel.Security
         private string requestReplyErrorPropertyName;
         private bool expectKeyDerivation;
 #region fromwcf
+        private bool expectSupportingTokens;
         private bool addTimestamp = true;
         private SecurityAlgorithmSuite incomingAlgorithmSuite = SecurityAlgorithmSuite.Default;
         private int maxCachedNonces = 900000;
@@ -68,6 +69,22 @@ namespace System.ServiceModel.Security
     }
 
 #region fromwcf
+    internal IList<SupportingTokenAuthenticatorSpecification> GetSupportingTokenAuthenticators(string action, out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens)
+    {
+      throw new NotImplementedException("GetSupportingTokenAuthenticators is not supported in .NET Core");
+    }
+    internal bool ExpectSupportingTokens
+    {
+      get
+      {
+        return this.expectSupportingTokens;
+      }
+      set
+      {
+        this.expectSupportingTokens = value;
+      }
+    }
+
     public AuditLevel MessageAuthenticationAuditLevel
     {
       get
