@@ -15,11 +15,9 @@ namespace System.ServiceModel.Channels
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
-            Console.WriteLine("ChannelBuilder constructor");
             _context = context;
             if (addChannelDemuxerIfRequired)
             {
-                // throw ExceptionHelper.PlatformNotSupported();
                 this.AddDemuxerBindingElement(context.RemainingBindingElements);
             }
             _binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
@@ -32,7 +30,6 @@ namespace System.ServiceModel.Channels
             _bindingParameters = bindingParameters;
             if (addChannelDemuxerIfRequired)
             {
-                // throw ExceptionHelper.PlatformNotSupported();
                 this.AddDemuxerBindingElement(_binding.Elements);
             }
         }

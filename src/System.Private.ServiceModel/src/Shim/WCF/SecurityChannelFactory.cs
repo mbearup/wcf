@@ -220,9 +220,6 @@ namespace System.ServiceModel.Channels
 
     protected override void OnOpen(TimeSpan timeout)
     {
-#if FEATURE_CORECLR
-      Console.WriteLine("**SecurityChannelFactory.OnOpen**");
-#endif
       TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
       this.OnOpenCore(timeoutHelper.RemainingTime());
       base.OnOpen(timeoutHelper.RemainingTime());
@@ -251,7 +248,6 @@ namespace System.ServiceModel.Channels
     protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
     {
 #if FEATURE_CORECLR
-      Console.WriteLine("**SecurityChannelFactory.OnBeginOpen**");
       throw new NotImplementedException("SecurityChannelFactory.OnBeginOpen not supported in .NET Core");
 #else
       return (IAsyncResult) new OperationWithTimeoutAsyncResult(new OperationWithTimeoutCallback(base.OnOpen), timeout, callback, state);

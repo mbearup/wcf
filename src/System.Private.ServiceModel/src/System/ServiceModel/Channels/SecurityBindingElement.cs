@@ -65,7 +65,9 @@ namespace System.ServiceModel.Channels
             if (elementToBeCloned == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
             _includeTimestamp = elementToBeCloned._includeTimestamp;
-            _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
+            Console.WriteLine("TODO - SecurityBindingElement constructor using MessageSecurityVersion WSTrust13");
+            // _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
+            _messageSecurityVersion = MessageSecurityVersion.Default;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
             _endpointSupportingTokenParameters = elementToBeCloned._endpointSupportingTokenParameters.Clone();
             optionalEndpointSupportingTokenParameters = elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
@@ -225,8 +227,7 @@ namespace System.ServiceModel.Channels
           factory.NonceCache = this.LocalServiceSettings.NonceCache;
       }
       factory.SecurityBindingElement = (SecurityBindingElement) this.Clone();
-      Console.WriteLine("TODO - Skipping SecurityBindingElement.SetIssuerBindingContextIfRequired");
-      // factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
+      factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
       factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
       SecurityTokenSerializer securityTokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this._messageSecurityVersion.SecurityTokenVersion);
       factory.StandardsManager = new SecurityStandardsManager(this._messageSecurityVersion, securityTokenSerializer);
@@ -254,8 +255,7 @@ namespace System.ServiceModel.Channels
         ChannelProtectionRequirements protectionRequirements = parameterCollection.Find<ChannelProtectionRequirements>();
         if (protectionRequirements != null)
           requirements.Add(protectionRequirements);
-        Console.WriteLine("TODO - AddBindingProtectionRequirements");
-        // SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
+        SecurityBindingElement.AddBindingProtectionRequirements(requirements, bindingElements, !isForService);
       }
       return requirements;
     }
@@ -610,6 +610,22 @@ namespace System.ServiceModel.Channels
       // return securityBindingElement != null && securityBindingElement.ProtectionTokenParameters is KerberosSecurityTokenParameters && sbe.EndpointSupportingTokenParameters.IsEmpty();
     }
 
+    private static void AddBindingProtectionRequirements(ChannelProtectionRequirements requirements, BindingElementCollection bindingElements, bool isForChannel)
+    {
+      BindingContext bindingContext = new BindingContext(new CustomBinding(bindingElements), new BindingParameterCollection());
+      foreach (BindingElement bindingElement in bindingElements)
+      {
+        if (bindingElement != null)
+        {
+          bindingContext.RemainingBindingElements.Clear();
+          bindingContext.RemainingBindingElements.Add(bindingElement);
+          ChannelProtectionRequirements innerProperty = bindingContext.GetInnerProperty<ChannelProtectionRequirements>();
+          if (innerProperty != null)
+            requirements.Add(innerProperty);
+        }
+      }
+    }
+
 #endregion
 
         public SupportingTokenParameters EndpointSupportingTokenParameters
@@ -753,6 +769,28 @@ namespace System.ServiceModel.Channels
               ((SspiSecurityTokenParameters) parameters).IssuerBindingContext = SecurityBindingElement.CreateIssuerBindingContextForNegotiation(issuerBindingContext);
             }
         }
+        
+        private static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
+        {
+          for (int index = 0; index < supportingParameters.Endorsing.Count; ++index)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters.Endorsing[index], issuerBindingContext);
+          for (int index = 0; index < supportingParameters.SignedEndorsing.Count; ++index)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters.SignedEndorsing[index], issuerBindingContext);
+          for (int index = 0; index < supportingParameters.Signed.Count; ++index)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters.Signed[index], issuerBindingContext);
+          for (int index = 0; index < supportingParameters.SignedEncrypted.Count; ++index)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters.SignedEncrypted[index], issuerBindingContext);
+        }
+
+        private void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
+        {
+          SecurityBindingElement.SetIssuerBindingContextIfRequired(this.EndpointSupportingTokenParameters, issuerBindingContext);
+          SecurityBindingElement.SetIssuerBindingContextIfRequired(this.OptionalEndpointSupportingTokenParameters, issuerBindingContext);
+          foreach (SupportingTokenParameters supportingParameters in (IEnumerable<SupportingTokenParameters>) this.OperationSupportingTokenParameters.Values)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters, issuerBindingContext);
+          foreach (SupportingTokenParameters supportingParameters in (IEnumerable<SupportingTokenParameters>) this.OptionalOperationSupportingTokenParameters.Values)
+            SecurityBindingElement.SetIssuerBindingContextIfRequired(supportingParameters, issuerBindingContext);
+        }        
         
         private static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
         {
@@ -945,7 +983,9 @@ namespace System.ServiceModel.Channels
         // reflected in the corresponding IsMutualCertificateBinding() method.
         static public SecurityBindingElement CreateMutualCertificateBindingElement()
         {
-            return CreateMutualCertificateBindingElement(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11);
+            Console.WriteLine("TODO SecurityBindingElement.CreateMutualCertificateBindingElement using MessageSecurityVersion.WSTrust13");
+            return CreateMutualCertificateBindingElement(MessageSecurityVersion.Default);
+            // return CreateMutualCertificateBindingElement(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11);
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic

@@ -586,9 +586,6 @@ namespace System.ServiceModel.Security
       }
       set
       {
-        Console.WriteLine("SET SecurityBindingElement");
-        if (value == null)
-        { Console.WriteLine("Cannot set SecurityBindingElement to NULL"); }
         this.ThrowIfImmutable();
         if (value != null)
           value = (SecurityBindingElement) value.Clone();

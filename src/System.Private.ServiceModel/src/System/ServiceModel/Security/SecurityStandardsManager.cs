@@ -54,12 +54,11 @@ namespace System.ServiceModel.Security
             // : this(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenSerializer)
             : this(MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12, tokenSerializer)
         {
-            Console.WriteLine("TODO - Keep WSTrust13? if so remove above comment.");
+            Console.WriteLine("TODO - SecurityStandardsManager - Keep WSTrust13?");
         }
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
-            Console.WriteLine("SecurityStandardsManager constructor");
             _tokenSerializer = tokenSerializer;
             _messageSecurityVersion = messageSecurityVersion;
             this._secureConversationDriver = messageSecurityVersion.SecureConversationVersion != SecureConversationVersion.WSSecureConversation13 ? (SecureConversationDriver) new WSSecureConversationFeb2005.DriverFeb2005() : (SecureConversationDriver) new WSSecureConversationDec2005.DriverDec2005();
@@ -94,7 +93,9 @@ namespace System.ServiceModel.Security
           get
           {
             if (this.wsSecurityTokenSerializer == null)
+            {
               this.wsSecurityTokenSerializer = this._tokenSerializer as WSSecurityTokenSerializer ?? new WSSecurityTokenSerializer(this.SecurityVersion);
+            }
             return this.wsSecurityTokenSerializer;
           }
         }

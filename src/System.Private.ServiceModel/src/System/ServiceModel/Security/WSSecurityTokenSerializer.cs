@@ -95,15 +95,13 @@ namespace System.ServiceModel.Security
           this.serializerEntries = new List<WSSecurityTokenSerializer.SerializerEntries>();
           if (secureConversationVersion == SecureConversationVersion.WSSecureConversationFeb2005)
           {
-            Console.WriteLine("TODO - Skipping WSSecureConversationFeb2005");
-            // this.secureConversation = (WSSecureConversation) new WSSecureConversationFeb2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
+            this.secureConversation = (WSSecureConversation) new WSSecureConversationFeb2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
           }
           else
           {
-            Console.WriteLine("TODO - Skipping WSSecureConversation13");
-            // if (secureConversationVersion != SecureConversationVersion.WSSecureConversation13)
-            //   throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException());
-            // this.secureConversation = (WSSecureConversation) new WSSecureConversationDec2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
+            if (secureConversationVersion != SecureConversationVersion.WSSecureConversation13)
+              throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException());
+            this.secureConversation = (WSSecureConversation) new WSSecureConversationDec2005(this, securityStateEncoder, knownTypes, maximumKeyDerivationOffset, maximumKeyDerivationLabelLength, maximumKeyDerivationNonceLength);
           }
           if (securityVersion == SecurityVersion.WSSecurity10)
           {

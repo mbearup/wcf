@@ -34,16 +34,12 @@ namespace System.ServiceModel.Security
     public WSSecureConversationDec2005(WSSecurityTokenSerializer tokenSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
       : base(tokenSerializer, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength)
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("DataProtectionSecurityStateEncoder not supported in .NET Core");
-#else
       this.securityStateEncoder = securityStateEncoder == null ? (SecurityStateEncoder) new DataProtectionSecurityStateEncoder() : securityStateEncoder;
       this.knownClaimTypes = (IList<Type>) new List<Type>();
       if (knownTypes == null)
         return;
       foreach (Type knownType in knownTypes)
         this.knownClaimTypes.Add(knownType);
-#endif
     }
 
     public override void PopulateTokenEntries(IList<WSSecurityTokenSerializer.TokenEntry> tokenEntryList)

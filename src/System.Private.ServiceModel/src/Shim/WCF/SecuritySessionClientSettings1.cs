@@ -284,9 +284,6 @@ namespace System.ServiceModel.Security
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("KeyRolloverGreaterThanKeyRenewal")));
       this.issuedTokenRenewalThreshold = this.sessionProtocolFactory.SecurityBindingElement.LocalClientSettings.CookieRenewalThresholdPercentage;
       this.ConfigureSessionProtocolFactory();
-#if FEATURE_CORECLR
-      Console.WriteLine("Calling sessionProtocolFactory.Open()");
-#endif
       this.sessionProtocolFactory.Open(true, timeoutHelper.RemainingTime());
     }
 
@@ -324,9 +321,6 @@ namespace System.ServiceModel.Security
         return (TChannel) (object) new SecuritySessionClientSettings<TChannel>.SecurityRequestSessionChannel(this, remoteAddress, via);
       if (typeof (TChannel) == typeof (IDuplexSessionChannel))
         return (TChannel) (object) new SecuritySessionClientSettings<TChannel>.ClientSecurityDuplexSessionChannel(this, remoteAddress, via);
-#if FEATURE_CORECLR
-      Console.WriteLine("Type is " + typeof(TChannel));
-#endif
       throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentException(SR.GetString("ChannelTypeNotSupported", new object[1]{ (object) typeof (TChannel) }), "TChannel"));
     }
 
@@ -347,16 +341,6 @@ namespace System.ServiceModel.Security
         if (!sessionProtocolFactory.ApplyIntegrity || !sessionProtocolFactory.RequireIntegrity)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SecuritySessionRequiresMessageIntegrity")));
         MessagePartSpecification parts = new MessagePartSpecification(true);
-        Console.WriteLine("Checking sessionProtocolFactory");
-        if (sessionProtocolFactory.ProtectionRequirements == null)
-        { Console.WriteLine("sessionProtocolFactory.ProtectionRequirements is NULL");}
-        else if (sessionProtocolFactory.ProtectionRequirements.OutgoingSignatureParts == null)
-        { Console.WriteLine("sessionProtocolFactory.ProtectionRequirements.OutgoingSignatureParts is NULL");}
-        else if (this.SecurityStandardsManager == null)
-        { Console.WriteLine("this.SecurityStandardsManager is NULL");}
-        else if (this.SecurityStandardsManager.SecureConversationDriver == null)
-        { Console.WriteLine("this.SecurityStandardsManager.SecureConversationDriver is NULL");}
-        Console.WriteLine("DONE Checking sessionProtocolFactory");
         sessionProtocolFactory.ProtectionRequirements.OutgoingSignatureParts.AddParts(parts, this.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
         sessionProtocolFactory.ProtectionRequirements.OutgoingSignatureParts.AddParts(parts, this.SecurityStandardsManager.SecureConversationDriver.CloseAction);
         sessionProtocolFactory.ProtectionRequirements.OutgoingSignatureParts.AddParts(parts, addressing.FaultAction);
@@ -555,9 +539,7 @@ namespace System.ServiceModel.Security
       private void SetupSessionTokenProvider()
       {
         InitiatorServiceModelSecurityTokenRequirement tokenRequirement = new InitiatorServiceModelSecurityTokenRequirement();
-        Console.WriteLine("Begin IssuedSecurityTokenParameters.InitializeSecurityTokenRequirement: " + this.Settings.IssuedSecurityTokenParameters.GetType());
         this.Settings.IssuedSecurityTokenParameters.InitializeSecurityTokenRequirement((SecurityTokenRequirement) tokenRequirement);
-        Console.WriteLine("End IssuedSecurityTokenParameters.InitializeSecurityTokenRequirement");
         tokenRequirement.KeyUsage = SecurityKeyUsage.Signature;
         tokenRequirement.SupportSecurityContextCancellation = true;
         tokenRequirement.SecurityAlgorithmSuite = this.Settings.SessionProtocolFactory.OutgoingAlgorithmSuite;
