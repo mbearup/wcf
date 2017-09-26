@@ -207,11 +207,7 @@ namespace System.ServiceModel.Security
     private InitiatorServiceModelSecurityTokenRequirement CreateInitiatorSecurityTokenRequirement(SecurityTokenParameters parameters, SecurityTokenAttachmentMode attachmentMode)
     {
       InitiatorServiceModelSecurityTokenRequirement tokenRequirement = this.CreateInitiatorSecurityTokenRequirement();
-#if FEATURE_CORECLR
-      // InitializeSecurityTokenRequirement not supported
-#else
       parameters.InitializeSecurityTokenRequirement((SecurityTokenRequirement) tokenRequirement);
-#endif
       tokenRequirement.KeyUsage = SecurityKeyUsage.Signature;
       tokenRequirement.Properties[ServiceModelSecurityTokenRequirement.MessageDirectionProperty] = (object) MessageDirection.Output;
       tokenRequirement.Properties[ServiceModelSecurityTokenRequirement.SupportingTokenAttachmentModeProperty] = (object) attachmentMode;
@@ -563,17 +559,15 @@ namespace System.ServiceModel.Security
       {
         if (!isBlockingCall)
           return false;
-#if FEATURE_CORECLR
-        throw new NotImplementedException("KerberosSecurityTokenParameters is not supported in .NET Core");
-#else
         supportingTokens = (IList<SupportingTokenSpecification>) new Collection<SupportingTokenSpecification>();
         for (int index = 0; index < supportingTokenProviders.Count; ++index)
         {
           SupportingTokenProviderSpecification providerSpecification = supportingTokenProviders[index];
-          SecurityToken token = !(this is TransportSecurityProtocol) || !(providerSpecification.TokenParameters is KerberosSecurityTokenParameters) ? providerSpecification.TokenProvider.GetToken(timeoutHelper.RemainingTime()) : (SecurityToken) new ProviderBackedSecurityToken(providerSpecification.TokenProvider, timeoutHelper.RemainingTime());
+          Console.WriteLine("Skipping KerberosSecurityTokenParameters - should not be needed");
+//           SecurityToken token = !(this is TransportSecurityProtocol) || !(providerSpecification.TokenParameters is KerberosSecurityTokenParameters) ? providerSpecification.TokenProvider.GetToken(timeoutHelper.RemainingTime()) : (SecurityToken) new ProviderBackedSecurityToken(providerSpecification.TokenProvider, timeoutHelper.RemainingTime());
+          SecurityToken token = !(this is TransportSecurityProtocol) ? providerSpecification.TokenProvider.GetToken(timeoutHelper.RemainingTime()) : (SecurityToken) new ProviderBackedSecurityToken(providerSpecification.TokenProvider, timeoutHelper.RemainingTime());
           supportingTokens.Add(new SupportingTokenSpecification(token, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, providerSpecification.SecurityTokenAttachmentMode, providerSpecification.TokenParameters));
         }
-#endif
       }
       this.AddMessageSupportingTokens(message, ref supportingTokens);
       return true;
@@ -622,14 +616,11 @@ namespace System.ServiceModel.Security
       }
       return new ReadOnlyCollection<SecurityTokenResolver>((IList<SecurityTokenResolver>) collection);
     }
-
+	
     protected void AddSupportingTokens(SendSecurityHeader securityHeader, IList<SupportingTokenSpecification> supportingTokens)
     {
       if (supportingTokens == null)
         return;
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SecurityHeader.Add*SupportingToken is not supported in .NET Core");
-#else
       for (int index = 0; index < supportingTokens.Count; ++index)
       {
         SecurityToken securityToken = supportingTokens[index].SecurityToken;
@@ -652,7 +643,6 @@ namespace System.ServiceModel.Security
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("UnknownTokenAttachmentMode", new object[1]{ (object) supportingTokens[index].SecurityTokenAttachmentMode.ToString() })));
         }
       }
-#endif
     }
 
     public virtual IAsyncResult BeginSecureOutgoingMessage(Message message, TimeSpan timeout, AsyncCallback callback, object state)

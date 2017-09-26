@@ -827,7 +827,9 @@ namespace System.ServiceModel.Channels
 
         internal bool RequiresChannelDemuxer(SecurityTokenParameters parameters)
         {
-            throw ExceptionHelper.PlatformNotSupported("RequiresChannelDemuxer is not supported.");
+            if (!(parameters is SecureConversationSecurityTokenParameters) && !(parameters is SslSecurityTokenParameters))
+                return parameters is SspiSecurityTokenParameters;
+            return true;
         }
 
         internal virtual bool RequiresChannelDemuxer()
@@ -1053,6 +1055,11 @@ namespace System.ServiceModel.Channels
             return true;
         }
 
+        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
+        {
+            return CreateCertificateOverTransportBindingElement(MessageSecurityVersion.Default);
+        }
+
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsCertificateOverTransportBinding() method.
         static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
@@ -1061,8 +1068,15 @@ namespace System.ServiceModel.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
             }
-
-            throw ExceptionHelper.PlatformNotSupported("SecurityBindingElement.CreateCertificateOverTransportBindingElement is not supported.");
+            X509KeyIdentifierClauseType x509ReferenceStyle = version.SecurityVersion != SecurityVersion.WSSecurity10 ? X509KeyIdentifierClauseType.Thumbprint : X509KeyIdentifierClauseType.Any;
+            TransportSecurityBindingElement securityBindingElement = new TransportSecurityBindingElement();
+            X509SecurityTokenParameters securityTokenParameters = new X509SecurityTokenParameters(x509ReferenceStyle, SecurityTokenInclusionMode.AlwaysToRecipient, false);
+            securityBindingElement.EndpointSupportingTokenParameters.Endorsing.Add((SecurityTokenParameters) securityTokenParameters);
+            securityBindingElement.IncludeTimestamp = true;
+            securityBindingElement.LocalClientSettings.DetectReplays = false;
+            securityBindingElement.LocalServiceSettings.DetectReplays = false;
+            securityBindingElement.MessageSecurityVersion = version;
+            return securityBindingElement;
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic

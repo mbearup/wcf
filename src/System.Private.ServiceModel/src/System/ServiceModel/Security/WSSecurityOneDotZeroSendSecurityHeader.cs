@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System.IdentityModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
+using System.Xml;
 
 namespace System.ServiceModel.Security
 {
@@ -17,5 +19,16 @@ namespace System.ServiceModel.Security
             : base(message, actor, mustUnderstand, relay, standardsManager, algorithmSuite, direction)
         {
         }
+
+        internal override void ApplyBodySecurity(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
+        {
+            throw new NotImplementedException("ApplyBodySecurity is not supported in .NET Core");
+        }
+
+        internal override void ApplySecurityAndWriteHeaders(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
+        {
+            throw new NotImplementedException("ApplySecurityAndWriteHeaders is not supported in .NET Core");
+        }
+
     }
 }
