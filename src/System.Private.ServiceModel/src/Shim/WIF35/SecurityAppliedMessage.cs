@@ -170,9 +170,6 @@ namespace System.ServiceModel.Security
 
     protected override void OnWriteMessage(XmlDictionaryWriter writer)
     {
-#if FEATURE_CORECLR
-	  throw new NotImplementedException("OnWriteMessage is not supported in .NET Core");
-#else
       this.AttachChannelBindingTokenIfFound();
       this.EnsureUniqueSecurityApplication();
       SecurityAppliedMessage.MessagePrefixGenerator messagePrefixGenerator = new SecurityAppliedMessage.MessagePrefixGenerator((XmlWriter) writer);
@@ -204,7 +201,6 @@ namespace System.ServiceModel.Security
           writer.WriteEndElement();
       }
       writer.WriteEndElement();
-#endif
     }
 
     private void AttachChannelBindingTokenIfFound()

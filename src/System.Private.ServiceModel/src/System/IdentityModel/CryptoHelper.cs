@@ -11,6 +11,18 @@ namespace System.IdentityModel
     {
         private static readonly RandomNumberGenerator random = (RandomNumberGenerator) new RNGCryptoServiceProvider();
 
+        internal static bool IsEqual(byte[] a, byte[] b)
+        {
+            if (a == null || b == null || a.Length != b.Length)
+                return false;
+            for (int index = 0; index < a.Length; ++index)
+            {
+                if ((int) a[index] != (int) b[index])
+                    return false;
+            }
+            return true;
+        }
+
         internal static bool IsSymmetricAlgorithm(string algorithm)
         {
             throw ExceptionHelper.PlatformNotSupported();
