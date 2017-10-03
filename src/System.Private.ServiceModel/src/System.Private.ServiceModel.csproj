@@ -8,7 +8,7 @@
     <AssemblyName>System.Private.ServiceModel</AssemblyName>
     <RootNamespace>System.ServiceModel</RootNamespace>
     <OutputType>Library</OutputType>
-    <NoWarn>$(NoWarn);1634;1691;649;0169</NoWarn>
+    <NoWarn>$(NoWarn);1634;1691;649;0168;0169;5350;0219</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <FileAlignment>512</FileAlignment>
     <DebugSymbols>true</DebugSymbols>

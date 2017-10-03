@@ -104,7 +104,8 @@ namespace System.ServiceModel.Security.Tokens
           if (this._securityToken == null)
           {
 #if FEATURE_CORECLR
-            throw new NotImplementedException("KerberosSecurityTokenProviderWrapper does not exist in .NET Core");
+            // Skip KerberosSecurityTokenProviderWrapper
+            this._securityToken = this._tokenProvider.GetToken(new TimeoutHelper(this._timeout).RemainingTime());
 #else
             ClientCredentialsSecurityTokenManager.KerberosSecurityTokenProviderWrapper tokenProvider = this._tokenProvider as ClientCredentialsSecurityTokenManager.KerberosSecurityTokenProviderWrapper;
             this._securityToken = tokenProvider == null ? this._tokenProvider.GetToken(new TimeoutHelper(this._timeout).RemainingTime()) : tokenProvider.GetToken(new TimeoutHelper(this._timeout).RemainingTime(), this._channelBinding);

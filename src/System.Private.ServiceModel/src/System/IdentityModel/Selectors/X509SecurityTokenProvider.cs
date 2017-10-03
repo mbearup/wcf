@@ -51,5 +51,10 @@ namespace System.IdentityModel.Selectors
                 System.ServiceModel.Security.SecurityUtils.ResetCertificate(_certificate);
             }
         }
+        
+        protected override SecurityToken GetTokenCore(TimeSpan timeout)
+        {
+          return (SecurityToken) new X509SecurityToken(this._certificate);
+        }
     }
 }

@@ -127,15 +127,16 @@ namespace System.ServiceModel.Security.Tokens
     /// <returns>The security key identifier clause.</returns>
     protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
     {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("X509KeyIdentifierClauseType is not supported in .NET Core");
-#else
       SecurityKeyIdentifierClause identifierClause = (SecurityKeyIdentifierClause) null;
       switch (this.x509ReferenceStyle)
       {
         case X509KeyIdentifierClauseType.Thumbprint:
           identifierClause = this.CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
           break;
+#if FEATURE_CORECLR
+        default:
+          throw new NotImplementedException("X509KeyIdentifierClauseType " + this.x509ReferenceStyle + " is unsupported");
+#else
         case X509KeyIdentifierClauseType.IssuerSerial:
           identifierClause = this.CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
           break;
@@ -151,7 +152,6 @@ namespace System.ServiceModel.Security.Tokens
             X509SecurityToken x509SecurityToken = token as X509SecurityToken;
             if (x509SecurityToken != null)
             {
-
               X509SubjectKeyIdentifierClause keyIdentifierClause;
               if (X509SubjectKeyIdentifierClause.TryCreateFrom(x509SecurityToken.Certificate, out keyIdentifierClause))
                 identifierClause = (SecurityKeyIdentifierClause) keyIdentifierClause;
@@ -174,9 +174,9 @@ namespace System.ServiceModel.Security.Tokens
           }
           identifierClause = (SecurityKeyIdentifierClause) token.CreateKeyIdentifierClause<LocalIdKeyIdentifierClause>();
           break;
+#endif
       }
       return identifierClause;
-#endif
     }
 
     /// <summary>Initializes a security token requirement.</summary>

@@ -173,13 +173,9 @@ namespace System.IdentityModel
     {
       if (this.CanonicalizationMethod != "http://www.w3.org/2001/10/xml-exc-c14n#" && this.CanonicalizationMethod != "http://www.w3.org/2001/10/xml-exc-c14n#WithComments")
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new CryptographicException(SR.GetString("UnsupportedTransformAlgorithm")));
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SignatureResourcePool is not fully implemented in .NET Core");
-#else
       HashStream hashStream = this.ResourcePool.TakeHashStream(algorithm);
       this.ComputeHash(hashStream);
       hashStream.FlushHash();
-#endif
     }
 
     protected virtual void ComputeHash(HashStream hashStream)

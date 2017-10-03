@@ -23,7 +23,9 @@ namespace System.ServiceModel.Security
         private static SecurityStandardsManager s_instance;
         private readonly MessageSecurityVersion _messageSecurityVersion;
         private readonly TrustDriver _trustDriver;
+        private readonly SignatureTargetIdManager idManager;
 #if FEATURE_CORECLR
+        private readonly WSUtilitySpecificationVersion wsUtilitySpecificationVersion;
         private readonly SecureConversationDriver _secureConversationDriver;
         private readonly SecurityTokenSerializer _tokenSerializer;
         private WSSecurityTokenSerializer wsSecurityTokenSerializer;
@@ -39,6 +41,14 @@ namespace System.ServiceModel.Security
         internal bool DoesMessageContainSecurityHeader(Message message)
         {
           return this.SecurityVersion.DoesMessageContainSecurityHeader(message);
+        }
+        
+        internal WSUtilitySpecificationVersion WSUtilitySpecificationVersion
+        {
+          get
+          {
+            return this.wsUtilitySpecificationVersion;
+          }
         }
 #endif
 #pragma warning restore 0649
@@ -61,6 +71,8 @@ namespace System.ServiceModel.Security
         {
             _tokenSerializer = tokenSerializer;
             _messageSecurityVersion = messageSecurityVersion;
+            this.wsUtilitySpecificationVersion = WSUtilitySpecificationVersion.Default;
+            this.idManager = (SignatureTargetIdManager) WSSecurityJan2004.IdManager.Instance;
             this._secureConversationDriver = messageSecurityVersion.SecureConversationVersion != SecureConversationVersion.WSSecureConversation13 ? (SecureConversationDriver) new WSSecureConversationFeb2005.DriverFeb2005() : (SecureConversationDriver) new WSSecureConversationDec2005.DriverDec2005();
             if (messageSecurityVersion.MessageSecurityTokenVersion.TrustVersion == TrustVersion.WSTrust13)
             {  
@@ -86,6 +98,14 @@ namespace System.ServiceModel.Security
         internal SendSecurityHeader CreateSendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
         {
           return this.SecurityVersion.CreateSendSecurityHeader(message, actor, mustUnderstand, relay, this, algorithmSuite, direction);
+        }
+        
+        internal SignatureTargetIdManager IdManager
+        {
+          get
+          {
+            return this.idManager;
+          }
         }
 
         private WSSecurityTokenSerializer WSSecurityTokenSerializer

@@ -132,13 +132,8 @@ namespace System.ServiceModel.Security
           this._tokenEntries = new List<WSSecurityTokenSerializer.TokenEntry>();
           for (int index = 0; index < this.serializerEntries.Count; ++index)
           {
-            if (serializerEntries[index] == null)
+            if (serializerEntries[index] != null)
             {
-                Console.WriteLine("Entry {0} is NULL", index);
-            }
-            else
-            {
-                Console.WriteLine("Entry {0} is {1}", index, serializerEntries[index].GetType().ToString());
                 this.serializerEntries[index].PopulateTokenEntries((IList<WSSecurityTokenSerializer.TokenEntry>) this._tokenEntries);
             }
             
@@ -248,13 +243,22 @@ namespace System.ServiceModel.Security
         protected override void WriteTokenCore(XmlWriter writer, SecurityToken token)
         {
           bool flag = false;
+          if (token == null)
+          {
+              throw new ArgumentNullException("token");
+          }
           XmlDictionaryWriter dictionaryWriter = XmlDictionaryWriter.CreateDictionaryWriter(writer);
           if (token.GetType() == typeof (ProviderBackedSecurityToken))
             token = (token as ProviderBackedSecurityToken).Token;
+          if (token == null)
+          {
+              throw new ArgumentNullException("token");
+          }
           for (int index = 0; index < this._tokenEntries.Count; ++index)
           {
             WSSecurityTokenSerializer.TokenEntry tokenEntry = this._tokenEntries[index];
-            if (tokenEntry.SupportsCore(token.GetType()))
+            // if (tokenEntry.SupportsCore(token.GetType()))
+            if (tokenEntry != null)
             {
               try
               {

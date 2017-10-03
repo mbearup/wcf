@@ -577,11 +577,7 @@ namespace System.ServiceModel.Security
         throw TraceUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("BasicTokenCannotBeWrittenWithoutEncryption")), this.Message);
       if (this.elementContainer.Timestamp != null && this.Layout != SecurityHeaderLayout.LaxTimestampLast)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("WSUtilitySpecificationVersion is not supported in .NET Core");
-#else
         this.StandardsManager.WSUtilitySpecificationVersion.WriteTimestamp(writer, this.elementContainer.Timestamp);
-#endif
       }
       if (this.elementContainer.PrerequisiteToken != null)
         this.StandardsManager.SecurityTokenSerializer.WriteToken((XmlWriter) writer, this.elementContainer.PrerequisiteToken);
@@ -668,11 +664,7 @@ namespace System.ServiceModel.Security
         this.elementContainer.ReferenceList.WriteTo(writer, ServiceModelDictionaryManager.Instance);
       if (this.elementContainer.Timestamp == null || this.Layout != SecurityHeaderLayout.LaxTimestampLast)
         return;
-#if FEATURE_CORECLR
-      throw new NotImplementedException("WSUtilitySpecificationVersion is not supported in .NET Core");
-#else
       this.StandardsManager.WSUtilitySpecificationVersion.WriteTimestamp(writer, this.elementContainer.Timestamp);
-#endif
     }
 
     protected abstract void WriteSecurityTokenReferencyEntry(XmlDictionaryWriter writer, SecurityToken securityToken, SecurityTokenParameters securityTokenParameters);
@@ -802,17 +794,14 @@ namespace System.ServiceModel.Security
 
     private void SignWithSupportingTokens()
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("GetSignatureKeyDerivationLength is not supported");
-#else
       SecurityToken[] supportingTokens1 = this.elementContainer.GetEndorsingSupportingTokens();
+
       if (supportingTokens1 != null)
       {
-
         for (int index = 0; index < supportingTokens1.Length; ++index)
         {
           SecurityToken securityToken = supportingTokens1[index];
-          SecurityKeyIdentifierClause identifierClause1 = this.endorsingTokenParameters[index].CreateKeyIdentifierClause(securityToken, this.GetTokenReferenceStyle(this.endorsingTokenParameters[index]));
+          SecurityKeyIdentifierClause identifierClause1 = this.endorsingTokenParameters[index].CreateKeyIdentifierClausePublic(securityToken, this.GetTokenReferenceStyle(this.endorsingTokenParameters[index]));
           if (identifierClause1 == null)
             throw TraceUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("TokenManagerCannotCreateTokenReference")), this.Message);
           SecurityToken token;
@@ -839,7 +828,7 @@ namespace System.ServiceModel.Security
       for (int index = 0; index < supportingTokens2.Length; ++index)
       {
         SecurityToken securityToken = supportingTokens2[index];
-        SecurityKeyIdentifierClause identifierClause1 = this.signedEndorsingTokenParameters[index].CreateKeyIdentifierClause(securityToken, this.GetTokenReferenceStyle(this.signedEndorsingTokenParameters[index]));
+        SecurityKeyIdentifierClause identifierClause1 = this.signedEndorsingTokenParameters[index].CreateKeyIdentifierClausePublic(securityToken, this.GetTokenReferenceStyle(this.signedEndorsingTokenParameters[index]));
         if (identifierClause1 == null)
           throw TraceUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("TokenManagerCannotCreateTokenReference")), this.Message);
         SecurityToken token;
@@ -859,7 +848,6 @@ namespace System.ServiceModel.Security
         }
         this.SignWithSupportingToken(token, identifierClause2);
       }
-#endif
     }
 
     protected bool ShouldUseStrTransformForToken(SecurityToken securityToken, int position, SecurityTokenAttachmentMode mode, out SecurityKeyIdentifierClause keyIdentifierClause)

@@ -261,9 +261,6 @@ namespace System.ServiceModel.Security
 
     public override void ApplySecurityAndWriteHeaders(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SecurityStandardsManager.IdManager is not supported in .NET Core");
-#else
       string[] strArray = this.RequireMessageProtection || this.ShouldSignToHeader ? headers.GetHeaderAttributes("Id", this.StandardsManager.IdManager.DefaultIdNamespaceUri) : (string[]) null;
       for (int index = 0; index < headers.Count; ++index)
       {
@@ -271,7 +268,6 @@ namespace System.ServiceModel.Security
         if ((this.Version.Addressing != AddressingVersion.None || !(messageHeader.Namespace == AddressingVersion.None.Namespace)) && messageHeader != this)
           this.ApplySecurityAndWriteHeader(messageHeader, strArray == null ? (string) null : strArray[index], writer, prefixGenerator);
       }
-#endif
     }
 
     private static bool CanCanonicalizeAndFragment(XmlDictionaryWriter writer)
@@ -389,9 +385,6 @@ namespace System.ServiceModel.Security
     {
       if (this.signedXml == null)
         return (ISignatureValueSecurityElement) null;
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SignedXml.ComputeSignature is not supported in .NET Core");
-#else
       SecurityTimestamp timestamp = this.Timestamp;
       if (timestamp != null)
       {
@@ -431,7 +424,6 @@ namespace System.ServiceModel.Security
         this.signatureKey = (SecurityKey) null;
         this.effectiveSignatureParts = (MessagePartSpecification) null;
       }
-#endif
     }
 
     private EncryptedData CreateEncryptedData()
@@ -535,9 +527,6 @@ namespace System.ServiceModel.Security
 
     protected override void StartPrimarySignatureCore(SecurityToken token, SecurityKeyIdentifier keyIdentifier, MessagePartSpecification signatureParts, bool generateTargettableSignature)
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SignedXml is not supported in .NET Core");
-#else
       SecurityAlgorithmSuite algorithmSuite = this.AlgorithmSuite;
       string canonicalizationAlgorithm = algorithmSuite.DefaultCanonicalizationAlgorithm;
       XmlDictionaryString dictionaryString1 = algorithmSuite.DefaultCanonicalizationAlgorithmDictionaryString;
@@ -556,7 +545,6 @@ namespace System.ServiceModel.Security
         this.signedXml.Id = this.GenerateId();
       this.effectiveSignatureParts = signatureParts;
       this.hashStream = this.signedInfo.ResourcePool.TakeHashStream(defaultDigestAlgorithm);
-#endif
     }
 
     internal override ISignatureValueSecurityElement CreateSupportingSignature(SecurityToken token, SecurityKeyIdentifier identifier)

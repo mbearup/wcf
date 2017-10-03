@@ -49,7 +49,52 @@ namespace System.ServiceModel.Security.Tokens
         private ReadOnlyCollection<SecurityKey> _securityKeys;
 #pragma warning restore 0649
 
+        internal DerivedKeySecurityToken(int generation, int offset, int length, string label, int minNonceLength, SecurityToken tokenToDerive, SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm, string id)
+        {
+          byte[] numArray = new byte[minNonceLength];
+          new RNGCryptoServiceProvider().GetBytes(numArray);
+          Console.WriteLine("TODO - Initialize  derived key?");
+          this.Initialize(id, generation, offset, length, label, numArray, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, false); // False?
+        }
+        
+        internal DerivedKeySecurityToken(int generation, int offset, int length, string label, byte[] nonce, SecurityToken tokenToDerive, SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm, string id)
+        {
+          this.Initialize(id, generation, offset, length, label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, false);
+        }
 
+        private void Initialize(string id, int generation, int offset, int length, string label, byte[] nonce, SecurityToken tokenToDerive, SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm, bool initializeDerivedKey)
+        {
+          if (id == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+          if (tokenToDerive == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenToDerive");
+          if (tokenToDeriveIdentifier == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokentoDeriveIdentifier");
+          if (!System.ServiceModel.Security.SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, tokenToDerive))
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentException(SR.GetString("DerivedKeyCannotDeriveFromSecret")));
+          if (nonce == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("nonce");
+          if (length == -1)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("length"));
+          if (offset == -1 && generation == -1)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("DerivedKeyPosAndGenNotSpecified"));
+          if (offset >= 0 && generation >= 0)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.GetString("DerivedKeyPosAndGenBothSpecified"));
+          this._id = id;
+          this._label = label;
+          this._nonce = nonce;
+          this._length = length;
+          this._offset = offset;
+          this._generation = generation;
+          this._tokenToDerive = tokenToDerive;
+          this._tokenToDeriveIdentifier = tokenToDeriveIdentifier;
+          this._keyDerivationAlgorithm = derivationAlgorithm;
+          if (!initializeDerivedKey)
+            return;
+          Console.WriteLine("TODO - skipping InitializeDerivedKey");
+          // this.InitializeDerivedKey(this.length);
+        }
+        
         public override string Id
         {
             get { return _id; }

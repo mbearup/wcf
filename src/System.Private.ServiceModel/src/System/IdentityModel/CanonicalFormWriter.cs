@@ -15,6 +15,18 @@ namespace System.IdentityModel
         // internal static readonly UTF8Encoding Utf8WithoutPreamble = new UTF8Encoding(encoderShouldEmitUTF8Identifier = false);
         internal static readonly Encoding Utf8WithoutPreamble = Encoding.UTF8;
 
+        protected static void Base64EncodeAndWrite(Stream stream, byte[] workBuffer, char[] base64WorkBuffer, byte[] data)
+        {
+          if (data.Length / 3 * 4 + 4 > base64WorkBuffer.Length)
+          {
+            CanonicalFormWriter.EncodeAndWrite(stream, Convert.ToBase64String(data));
+          }
+          else
+          {
+            int base64CharArray = Convert.ToBase64CharArray(data, 0, data.Length, base64WorkBuffer, 0, Base64FormattingOptions.None);
+            CanonicalFormWriter.EncodeAndWrite(stream, workBuffer, base64WorkBuffer, base64CharArray);
+          }
+        }
 
         protected static void EncodeAndWrite(Stream stream, byte[] workBuffer, string s)
         {

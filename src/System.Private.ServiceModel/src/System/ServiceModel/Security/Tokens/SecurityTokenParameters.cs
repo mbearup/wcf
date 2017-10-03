@@ -106,6 +106,12 @@ namespace System.ServiceModel.Security.Tokens
 #endif
         }
         
+        // Public version of above method
+        public virtual SecurityKeyIdentifierClause CreateKeyIdentifierClausePublic(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+            return this.CreateKeyIdentifierClause(token, referenceStyle);
+        }
+        
 #if FEATURE_CORECLR        
         public virtual void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
 #else

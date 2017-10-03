@@ -50,6 +50,14 @@ namespace System.IdentityModel
         }
 
 #region FromWCF
+    internal static bool RequiresFipsCompliance
+    {
+        get
+        {
+            return false;
+        }
+    }
+    
     internal static byte[] EncryptKey(SecurityToken wrappingToken, string encryptionMethod, byte[] keyToWrap)
     {
       SecurityKey securityKey = (SecurityKey) null;

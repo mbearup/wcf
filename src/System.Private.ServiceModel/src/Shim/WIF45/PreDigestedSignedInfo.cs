@@ -96,11 +96,7 @@ namespace System.IdentityModel
         base.ComputeHash(hashStream);
       else
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SignatureResourcePool is not fully implemented in .NET Core");
-#else
         PreDigestedSignedInfo.SignedInfoCanonicalFormWriter.Instance.WriteSignedInfoCanonicalForm((Stream) hashStream, this.SignatureMethod, this.DigestMethod, this.references, this.count, this.ResourcePool.TakeEncodingBuffer(), this.ResourcePool.TakeBase64Buffer());
-#endif
       }
     }
 
@@ -239,10 +235,7 @@ namespace System.IdentityModel
 
       private SignedInfoCanonicalFormWriter()
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("Cannot implicitly convert type 'System.Text.Encoding' to 'System.Text.UTF8Encoding'");
-#else
-        UTF8Encoding utf8WithoutPreamble = CanonicalFormWriter.Utf8WithoutPreamble;
+        UTF8Encoding utf8WithoutPreamble = (UTF8Encoding) CanonicalFormWriter.Utf8WithoutPreamble;
         this.fragment1 = utf8WithoutPreamble.GetBytes("<SignedInfo xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></CanonicalizationMethod><SignatureMethod Algorithm=\"");
         this.fragment2 = utf8WithoutPreamble.GetBytes("\"></SignatureMethod>");
         this.fragment3 = utf8WithoutPreamble.GetBytes("<Reference URI=\"#");
@@ -255,7 +248,6 @@ namespace System.IdentityModel
         this.sha256Digest = utf8WithoutPreamble.GetBytes("http://www.w3.org/2001/04/xmlenc#sha256");
         this.hmacSha1Signature = utf8WithoutPreamble.GetBytes("http://www.w3.org/2000/09/xmldsig#hmac-sha1");
         this.rsaSha1Signature = utf8WithoutPreamble.GetBytes("http://www.w3.org/2000/09/xmldsig#rsa-sha1");
-#endif
       }
 
       private byte[] EncodeDigestAlgorithm(string algorithm)
@@ -278,9 +270,6 @@ namespace System.IdentityModel
 
       public void WriteSignedInfoCanonicalForm(Stream stream, string signatureMethod, string digestMethod, PreDigestedSignedInfo.ReferenceEntry[] references, int referenceCount, byte[] workBuffer, char[] base64WorkBuffer)
       {
-#if FEATURE_CORECLR
-          throw new NotImplementedException("CanonicalFormWriter.Base64EncodeAndWrite is not supported in .NET Core");
-#else
         stream.Write(this.fragment1, 0, this.fragment1.Length);
         byte[] buffer1 = this.EncodeSignatureAlgorithm(signatureMethod);
         stream.Write(buffer1, 0, buffer1.Length);
@@ -301,7 +290,6 @@ namespace System.IdentityModel
           stream.Write(this.fragment6, 0, this.fragment6.Length);
         }
         stream.Write(this.fragment7, 0, this.fragment7.Length);
-#endif
       }
     }
   }

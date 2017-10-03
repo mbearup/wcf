@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens;
 using System.Xml;
 
@@ -61,6 +62,42 @@ namespace System.ServiceModel.Security
         public virtual bool IsSignatureKeyDerivationAlgorithmSupported(string algorithm) { return (algorithm == SecurityAlgorithms.Psha1KeyDerivation) || (algorithm == SecurityAlgorithms.Psha1KeyDerivationDec2005); }
         public abstract bool IsSymmetricKeyLengthSupported(int length);
         public abstract bool IsAsymmetricKeyLengthSupported(int length);
+        
+        internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
+        {
+          if (token == null)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+          if (!SecurityUtils.IsSupportedAlgorithm(SecurityUtils.GetKeyDerivationAlgorithm(version), token))
+            return 0;
+          if (this.DefaultSignatureKeyDerivationLength % 8 != 0)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentException(SR.GetString("Psha1KeyLengthInvalid", new object[1]{ (object) this.DefaultSignatureKeyDerivationLength })));
+          return this.DefaultSignatureKeyDerivationLength / 8;
+        }
+        
+        internal void GetSignatureAlgorithmAndKey(SecurityToken token, out string signatureAlgorithm, out SecurityKey key, out XmlDictionaryString signatureAlgorithmDictionaryString)
+        {
+          ReadOnlyCollection<SecurityKey> securityKeys = token.SecurityKeys;
+          if (securityKeys == null || securityKeys.Count == 0)
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SigningTokenHasNoKeys", new object[1]{ (object) token })));
+          for (int index = 0; index < securityKeys.Count; ++index)
+          {
+            if (securityKeys[index].IsSupportedAlgorithm(this.DefaultSymmetricSignatureAlgorithm))
+            {
+              signatureAlgorithm = this.DefaultSymmetricSignatureAlgorithm;
+              signatureAlgorithmDictionaryString = this.DefaultSymmetricSignatureAlgorithmDictionaryString;
+              key = securityKeys[index];
+              return;
+            }
+            if (securityKeys[index].IsSupportedAlgorithm(this.DefaultAsymmetricSignatureAlgorithm))
+            {
+              signatureAlgorithm = this.DefaultAsymmetricSignatureAlgorithm;
+              signatureAlgorithmDictionaryString = this.DefaultAsymmetricSignatureAlgorithmDictionaryString;
+              key = securityKeys[index];
+              return;
+            }
+          }
+          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SigningTokenHasNoKeysSupportingTheAlgorithmSuite", (object) token, (object) this)));
+        }
     }
 
     public class Basic256SecurityAlgorithmSuite : SecurityAlgorithmSuite
@@ -81,12 +118,12 @@ namespace System.ServiceModel.Security
         public override bool IsAsymmetricKeyLengthSupported(int length) { return length >= 1024 && length <= 4096; }
 
         public override XmlDictionaryString DefaultCanonicalizationAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.ExclusiveC14n; } }
-        public override XmlDictionaryString DefaultDigestAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.Sha1Digest; } }
+        public override XmlDictionaryString DefaultDigestAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.Sha256Digest; } }
         public override XmlDictionaryString DefaultEncryptionAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.Aes256Encryption; } }
         public override XmlDictionaryString DefaultSymmetricKeyWrapAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.Aes256KeyWrap; } }
         public override XmlDictionaryString DefaultAsymmetricKeyWrapAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.RsaOaepKeyWrap; } }
-        public override XmlDictionaryString DefaultSymmetricSignatureAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.HmacSha1Signature; } }
-        public override XmlDictionaryString DefaultAsymmetricSignatureAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.RsaSha1Signature; } }
+        public override XmlDictionaryString DefaultSymmetricSignatureAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.HmacSha256Signature; } }
+        public override XmlDictionaryString DefaultAsymmetricSignatureAlgorithmDictionaryString { get { return XD.SecurityAlgorithmDictionary.RsaSha256Signature; } }
 
         public override string ToString()
         {

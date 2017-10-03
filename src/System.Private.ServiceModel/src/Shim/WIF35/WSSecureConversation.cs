@@ -220,6 +220,12 @@ namespace System.ServiceModel.Security
       public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
       {
         DerivedKeySecurityToken keySecurityToken = token as DerivedKeySecurityToken;
+        if (keySecurityToken == null)
+        {
+            string tokenType = token.GetType().ToString();
+            throw new Exception("token type is incompatible with DerivedKeySecurityToken:  " + tokenType);
+        }
+       
         string prefix = this.parent.SerializerDictionary.Prefix.Value;
         writer.WriteStartElement(prefix, this.parent.SerializerDictionary.DerivedKeyToken, this.parent.SerializerDictionary.Namespace);
         if (keySecurityToken.Id != null)
