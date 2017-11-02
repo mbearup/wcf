@@ -30,7 +30,7 @@ namespace System
             return false;
         }
 
-        public static string GetString(string s, object o1 = null, object o2 = null, object o3 = null)
+        public static string GetString(string s, object o1 = null, object o2 = null, object o3 = null, object o4 = null, object o5 = null, object o6 = null)
         {
             // Normally this would look up a region-specific version of this string...
             return s;

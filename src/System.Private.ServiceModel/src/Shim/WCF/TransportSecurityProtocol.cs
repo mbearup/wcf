@@ -186,9 +186,6 @@ namespace System.ServiceModel.Security
 
     protected virtual void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("ReceiveSecurityHeader not fully supported in .NET Core");
-#else
       TransportSecurityProtocolFactory securityProtocolFactory = (TransportSecurityProtocolFactory) this.SecurityProtocolFactory;
       string empty = string.Empty;
       ReceiveSecurityHeader receiveSecurityHeader = securityProtocolFactory.StandardsManager.TryCreateReceiveSecurityHeader(message, empty, securityProtocolFactory.IncomingAlgorithmSuite, securityProtocolFactory.ActAsInitiator ? MessageDirection.Output : MessageDirection.Input);
@@ -219,16 +216,23 @@ namespace System.ServiceModel.Security
         receiveSecurityHeader.ConfigureTransportBindingServerReceiveHeader(tokenAuthenticators);
         receiveSecurityHeader.ConfigureOutOfBandTokenResolver(this.MergeOutOfBandResolvers(tokenAuthenticators, EmptyReadOnlyCollection<SecurityTokenResolver>.Instance));
         if (securityProtocolFactory.ExpectKeyDerivation)
+        {
+#if FEATURE_CORECLR
+          throw new NotImplementedException("SecurityProtocolFactory.DerivedKeyTokenAuthenticator is not implemented in .NET Core");
+#else
           receiveSecurityHeader.DerivedTokenAuthenticator = (SecurityTokenAuthenticator) securityProtocolFactory.DerivedKeyTokenAuthenticator;
+#endif
+        }
       }
       receiveSecurityHeader.ReplayDetectionEnabled = securityProtocolFactory.DetectReplays;
       receiveSecurityHeader.SetTimeParameters(securityProtocolFactory.NonceCache, securityProtocolFactory.ReplayWindow, securityProtocolFactory.MaxClockSkew);
       receiveSecurityHeader.Process(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), securityProtocolFactory.ExtendedProtectionPolicy);
       message = receiveSecurityHeader.ProcessedMessage;
       if (!securityProtocolFactory.ActAsInitiator)
+	  {
         this.AttachRecipientSecurityProperty(message, (IList<SecurityToken>) receiveSecurityHeader.BasicSupportingTokens, (IList<SecurityToken>) receiveSecurityHeader.EndorsingSupportingTokens, (IList<SecurityToken>) receiveSecurityHeader.SignedEndorsingSupportingTokens, (IList<SecurityToken>) receiveSecurityHeader.SignedSupportingTokens, receiveSecurityHeader.SecurityTokenAuthorizationPoliciesMapping);
+	  }
       this.OnIncomingMessageVerified(message);
-#endif
     }
 
     private sealed class SecureOutgoingMessageAsyncResult : SecurityProtocol.GetSupportingTokensAsyncResult

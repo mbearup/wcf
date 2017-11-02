@@ -42,6 +42,7 @@ namespace System.ServiceModel.Channels
         private SecurityKeyEntropyMode keyEntropyMode;
         private Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
         private Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
+		private bool enableUnsecuredResponse;
 #endregion
 
         internal SecurityBindingElement()
@@ -57,6 +58,7 @@ namespace System.ServiceModel.Channels
             _securityHeaderLayout = SecurityProtocolFactory.defaultSecurityHeaderLayout;
             _localServiceSettings = new LocalServiceSecuritySettings();
             _defaultAlgorithmSuite = SecurityBindingElement.defaultDefaultAlgorithmSuite;
+			enableUnsecuredResponse = defaultEnableUnsecuredResponse;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -65,9 +67,7 @@ namespace System.ServiceModel.Channels
             if (elementToBeCloned == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
             _includeTimestamp = elementToBeCloned._includeTimestamp;
-            Console.WriteLine("TODO - SecurityBindingElement constructor using MessageSecurityVersion WSTrust13");
-            // _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
-            _messageSecurityVersion = MessageSecurityVersion.Default;
+            _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
             _endpointSupportingTokenParameters = elementToBeCloned._endpointSupportingTokenParameters.Clone();
             optionalEndpointSupportingTokenParameters = elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
@@ -82,6 +82,7 @@ namespace System.ServiceModel.Channels
             _readerQuotas = elementToBeCloned._readerQuotas;
             _localServiceSettings = elementToBeCloned._localServiceSettings.Clone();
             _defaultAlgorithmSuite = elementToBeCloned.DefaultAlgorithmSuite;
+			enableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
         }
 
 #region FromWCF
@@ -90,6 +91,18 @@ namespace System.ServiceModel.Channels
       get
       {
         return this.optionalEndpointSupportingTokenParameters;
+      }
+    }
+	
+    public bool EnableUnsecuredResponse
+    {
+      get
+      {
+        return this.enableUnsecuredResponse;
+      }
+      set
+      {
+        this.enableUnsecuredResponse = value;
       }
     }
 

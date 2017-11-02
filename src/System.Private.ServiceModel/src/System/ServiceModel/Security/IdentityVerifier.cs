@@ -52,6 +52,11 @@ namespace System.ServiceModel.Security
             this.EnsureIdentity(serviceReference, authorizationContext, SR.IdentityCheckFailedForOutgoingMessage);
         }
 
+        internal void EnsureIncomingIdentity(EndpointAddress serviceReference, AuthorizationContext authorizationContext)
+        {
+          this.EnsureIdentity(serviceReference, authorizationContext, "IdentityCheckFailedForIncomingMessage");
+        }
+        
         internal void EnsureOutgoingIdentity(EndpointAddress serviceReference, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
             if (authorizationPolicies == null)

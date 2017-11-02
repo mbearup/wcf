@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Security;
 using System.Runtime;
 using System.Security.Authentication;
+using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel.Channels;
@@ -241,7 +242,18 @@ namespace System.ServiceModel.Security
         }
 
 #region Fromwcf
-
+    public static ChannelBinding GetChannelBindingFromMessage(Message message)
+    {
+      if (message == null)
+        return (ChannelBinding) null;
+      ChannelBindingMessageProperty property = (ChannelBindingMessageProperty) null;
+      ChannelBindingMessageProperty.TryGet(message, out property);
+      ChannelBinding channelBinding = (ChannelBinding) null;
+      if (property != null)
+        channelBinding = property.ChannelBinding;
+      return channelBinding;
+    }
+    
     public static SecurityBindingElement GetIssuerSecurityBindingElement(ServiceModelSecurityTokenRequirement requirement)
     {
       SecurityBindingElement securityBindingElement = requirement.SecureConversationSecurityBindingElement;
@@ -359,6 +371,20 @@ namespace System.ServiceModel.Security
         }
         throw TraceUtility.ThrowHelperError(exception, message);
       }
+    }
+    
+    internal static void EnsureExpectedSymmetricMatch(SecurityToken t1, SecurityToken t2, Message message)
+    {
+      if (t1 == null || t2 == null || t1 == t2)
+        return;
+#if FEATURE_CORECLR
+      throw new NotImplementedException("SecurityUtils.GetSecurityKey is not supported in .NET Core");
+#else
+      SymmetricSecurityKey securityKey1 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t1);
+      SymmetricSecurityKey securityKey2 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t2);
+      if (securityKey1 == null || securityKey2 == null || !CryptoHelper.IsEqual(securityKey1.GetSymmetricKey(), securityKey2.GetSymmetricKey()))
+        throw TraceUtility.ThrowHelperError((Exception) new MessageSecurityException(System.ServiceModel.SR.GetString("TokenNotExpectedInSecurityHeader", new object[1]{ (object) t2 })), message);
+#endif
     }
 
     internal static IAsyncResult BeginCloseTokenProviderIfRequired(SecurityTokenProvider tokenProvider, TimeSpan timeout, AsyncCallback callback, object state)

@@ -289,7 +289,8 @@ namespace System.ServiceModel
           MessageSecurityTokenVersion securityTokenVersion = version as MessageSecurityTokenVersion;
           if (securityTokenVersion != null)
           {  
-            return (SecurityTokenSerializer) new WSSecurityTokenSerializer(securityTokenVersion.SecurityVersion, securityTokenVersion.TrustVersion, securityTokenVersion.SecureConversationVersion, securityTokenVersion.EmitBspRequiredAttributes, (SamlSerializer1) null, (SecurityStateEncoder) null, (IEnumerable<System.Type>) null);
+             // Use default instance due to issue with constructor
+	     return WSSecurityTokenSerializer.DefaultInstance;
           }
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("SecurityTokenManagerCannotCreateSerializerForVersion", new object[1]
           {

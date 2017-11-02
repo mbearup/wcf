@@ -6,7 +6,7 @@
 
 namespace System.IdentityModel
 {
-  internal enum SchProtocols
+  public enum SchProtocols
   {
     Zero = 0,
     Ssl2Server = 4,

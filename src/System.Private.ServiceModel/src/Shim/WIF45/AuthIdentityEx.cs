@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 namespace System.IdentityModel
 {
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-  internal struct AuthIdentityEx
+  public struct AuthIdentityEx
   {
     private static readonly int WinNTAuthIdentityVersion = 512;
     internal int Version;

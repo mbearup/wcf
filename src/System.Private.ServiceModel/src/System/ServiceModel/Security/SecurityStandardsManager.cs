@@ -61,10 +61,8 @@ namespace System.ServiceModel.Security
         }
 
         public SecurityStandardsManager(SecurityTokenSerializer tokenSerializer)
-            // : this(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenSerializer)
-            : this(MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12, tokenSerializer)
+            : this(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenSerializer)
         {
-            Console.WriteLine("TODO - SecurityStandardsManager - Keep WSTrust13?");
         }
 
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
@@ -95,6 +93,11 @@ namespace System.ServiceModel.Security
         }
 
 #if FEATURE_CORECLR
+		internal ReceiveSecurityHeader TryCreateReceiveSecurityHeader(Message message, string actor, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
+		{
+		  return this.SecurityVersion.TryCreateReceiveSecurityHeader(message, actor, this, algorithmSuite, direction);
+		}
+		
         internal SendSecurityHeader CreateSendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
         {
           return this.SecurityVersion.CreateSendSecurityHeader(message, actor, mustUnderstand, relay, this, algorithmSuite, direction);

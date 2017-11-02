@@ -61,6 +61,11 @@ namespace System.ServiceModel.Security
         private ICollection<SupportingTokenAuthenticatorSpecification> channelSupportingTokenAuthenticatorSpecification;
         private bool suppressAuditFailure;
         private AuditLevel messageAuthenticationAuditLevel;
+		private bool expectChannelBasicTokens;
+		private bool expectChannelSignedTokens;
+		private bool expectChannelEndorsingTokens;
+		private Dictionary<string, MergedSupportingTokenAuthenticatorSpecification> mergedSupportingTokenAuthenticatorsMap;
+		private static ReadOnlyCollection<SupportingTokenAuthenticatorSpecification> emptyTokenAuthenticators;
 #endregion
 
     public IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -71,8 +76,43 @@ namespace System.ServiceModel.Security
 #region fromwcf
     internal IList<SupportingTokenAuthenticatorSpecification> GetSupportingTokenAuthenticators(string action, out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens)
     {
-      throw new NotImplementedException("GetSupportingTokenAuthenticators is not supported in .NET Core");
+      if (this.mergedSupportingTokenAuthenticatorsMap != null && this.mergedSupportingTokenAuthenticatorsMap.Count > 0)
+      {
+        if (action != null && this.mergedSupportingTokenAuthenticatorsMap.ContainsKey(action))
+        {
+          MergedSupportingTokenAuthenticatorSpecification tokenAuthenticators = this.mergedSupportingTokenAuthenticatorsMap[action];
+          expectSignedTokens = tokenAuthenticators.ExpectSignedTokens;
+          expectBasicTokens = tokenAuthenticators.ExpectBasicTokens;
+          expectEndorsingTokens = tokenAuthenticators.ExpectEndorsingTokens;
+          return (IList<SupportingTokenAuthenticatorSpecification>) tokenAuthenticators.SupportingTokenAuthenticators;
+        }
+        if (this.mergedSupportingTokenAuthenticatorsMap.ContainsKey("*"))
+        {
+          MergedSupportingTokenAuthenticatorSpecification tokenAuthenticators = this.mergedSupportingTokenAuthenticatorsMap["*"];
+          expectSignedTokens = tokenAuthenticators.ExpectSignedTokens;
+          expectBasicTokens = tokenAuthenticators.ExpectBasicTokens;
+          expectEndorsingTokens = tokenAuthenticators.ExpectEndorsingTokens;
+          return (IList<SupportingTokenAuthenticatorSpecification>) tokenAuthenticators.SupportingTokenAuthenticators;
+        }
+      }
+      expectSignedTokens = this.expectChannelSignedTokens;
+      expectBasicTokens = this.expectChannelBasicTokens;
+      expectEndorsingTokens = this.expectChannelEndorsingTokens;
+      if (this.channelSupportingTokenAuthenticatorSpecification != SecurityProtocolFactory.EmptyTokenAuthenticators)
+        return (IList<SupportingTokenAuthenticatorSpecification>) this.channelSupportingTokenAuthenticatorSpecification;
+      return (IList<SupportingTokenAuthenticatorSpecification>) null;
     }
+	
+    private static ReadOnlyCollection<SupportingTokenAuthenticatorSpecification> EmptyTokenAuthenticators
+    {
+      get
+      {
+        if (SecurityProtocolFactory.emptyTokenAuthenticators == null)
+          SecurityProtocolFactory.emptyTokenAuthenticators = Array.AsReadOnly<SupportingTokenAuthenticatorSpecification>(new SupportingTokenAuthenticatorSpecification[0]);
+        return SecurityProtocolFactory.emptyTokenAuthenticators;
+      }
+    }
+	
     internal bool ExpectSupportingTokens
     {
       get

@@ -12,7 +12,7 @@ using System.Security.Authentication.ExtendedProtection;
 
 namespace System.ServiceModel.Security.Tokens
 {
-  internal class ProviderBackedSecurityToken : SecurityToken
+  public class ProviderBackedSecurityToken : SecurityToken
   {
     private SecurityTokenProvider _tokenProvider;
     private volatile SecurityToken _securityToken;

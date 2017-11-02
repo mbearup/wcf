@@ -193,13 +193,16 @@ namespace System.ServiceModel.Security
 
       public virtual SecurityToken CreateDerivedKeyToken(string id, string derivationAlgorithm, string label, int length, byte[] nonce, int offset, int generation, SecurityKeyIdentifierClause tokenToDeriveIdentifier, SecurityToken tokenToDerive)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("DerivedKeySecurityTokenStub not supported in .NET Core");
-#else
+
         if (tokenToDerive == null)
-          return (SecurityToken) new DerivedKeySecurityTokenStub(generation, offset, length, label, nonce, tokenToDeriveIdentifier, derivationAlgorithm, id);
-        return (SecurityToken) new DerivedKeySecurityToken(generation, offset, length, label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, id);
+		{
+#if FEATURE_CORECLR
+			throw new NotImplementedException("DerivedKeySecurityTokenStub not supported in .NET Core");
+#else
+			return (SecurityToken) new DerivedKeySecurityTokenStub(generation, offset, length, label, nonce, tokenToDeriveIdentifier, derivationAlgorithm, id);
 #endif
+		}
+        return (SecurityToken) new DerivedKeySecurityToken(generation, offset, length, label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, id);
       }
 
       public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
