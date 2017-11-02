@@ -328,6 +328,30 @@ namespace System.ServiceModel.Channels
         this.OnOpen(timeout);
         return TaskHelpers.CompletedTask();
       }
+      
+      protected internal override Task OnCloseAsync(TimeSpan timeout)
+      {
+        return OnCloseAsyncInternal(timeout);
+      }
+      
+      private async Task OnCloseAsyncInternal(TimeSpan timeout)
+      {
+        TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+#if !FEATURE_CORECLR
+        if (_isSynchronousClose)
+        {
+#endif
+            await TaskHelpers.CallActionAsync(base.OnClose, timeoutHelper.RemainingTime());
+#if !FEATURE_CORECLR
+        }
+        else
+        {
+            await Task.Factory.FromAsync(base.OnBeginClose, base.OnEndClose, timeoutHelper.RemainingTime(), TaskCreationOptions.None);
+        }
+
+        await CloseOtherAsync(_innerChannelFactory, timeoutHelper.RemainingTime());
+#endif
+      }
 #endregion
 
       protected ClientSecurityChannel(ChannelManagerBase factory, SecurityProtocolFactory securityProtocolFactory, UChannel innerChannel, EndpointAddress to, Uri via)
@@ -628,6 +652,7 @@ namespace System.ServiceModel.Channels
             }
             if (faultException != null)
             {
+              System.ServiceModel.CompatibilityShim.Print("Reply Body: {0}", reply.ToString());
               this.Fault(faultException);
               throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(faultException);
             }

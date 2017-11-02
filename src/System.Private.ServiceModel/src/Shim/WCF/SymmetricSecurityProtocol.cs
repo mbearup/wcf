@@ -21,7 +21,7 @@ namespace System.ServiceModel.Security
   internal sealed class SymmetricSecurityProtocol : MessageSecurityProtocol
   {
 // Trim for testing...
-/*
+
     private SecurityTokenProvider initiatorSymmetricTokenProvider;
     private SecurityTokenProvider initiatorAsymmetricTokenProvider;
     private SecurityTokenAuthenticator initiatorTokenAuthenticator;
@@ -59,14 +59,14 @@ namespace System.ServiceModel.Security
         this.CommunicationObject.ThrowIfNotOpened();
         return this.initiatorTokenAuthenticator;
       }
-    }*/
+    }
 
     public SymmetricSecurityProtocol(SymmetricSecurityProtocolFactory factory, EndpointAddress target, Uri via)
       : base((MessageSecurityProtocolFactory) factory, target, via)
     {
     }
 
-    /*private InitiatorServiceModelSecurityTokenRequirement CreateInitiatorTokenRequirement()
+    private InitiatorServiceModelSecurityTokenRequirement CreateInitiatorTokenRequirement()
     {
       InitiatorServiceModelSecurityTokenRequirement tokenRequirement = this.CreateInitiatorSecurityTokenRequirement();
       this.Factory.SecurityTokenParameters.InitializeSecurityTokenRequirement((SecurityTokenRequirement) tokenRequirement);
@@ -197,6 +197,9 @@ namespace System.ServiceModel.Security
     private WrappedKeySecurityToken CreateWrappedKeyToken(SecurityToken wrappingToken, SecurityTokenParameters wrappingTokenParameters, SecurityTokenReferenceStyle wrappingTokenReferenceStyle)
     {
       int keyLength = Math.Max(128, this.Factory.OutgoingAlgorithmSuite.DefaultSymmetricKeyLength);
+#if FEATURE_CORECLR
+      throw new NotImplementedException("CryptoHelper.ValidateSymmetricKeyLength is not supported in .NET Core");
+#else
       CryptoHelper.ValidateSymmetricKeyLength(keyLength, this.Factory.OutgoingAlgorithmSuite);
       byte[] numArray = new byte[keyLength / 8];
       CryptoHelper.FillRandomBytes(numArray);
@@ -204,6 +207,7 @@ namespace System.ServiceModel.Security
       string keyWrapAlgorithm = this.Factory.OutgoingAlgorithmSuite.DefaultAsymmetricKeyWrapAlgorithm;
       SecurityKeyIdentifierClause identifierClause = wrappingTokenParameters.CreateKeyIdentifierClause(wrappingToken, wrappingTokenReferenceStyle);
       return new WrappedKeySecurityToken(id, numArray, keyWrapAlgorithm, wrappingToken, new SecurityKeyIdentifier() { identifierClause });
+#endif
     }
 
     private SecurityToken GetInitiatorToken(SecurityToken providerToken, Message message, TimeSpan timeout, out SecurityTokenParameters tokenParameters, out SecurityToken prerequisiteWrappingToken)
@@ -320,7 +324,6 @@ namespace System.ServiceModel.Security
       return this.GetCorrelationState(signatureToken, securityHeader);
     }
 
-#if !FEATURE_CORECLR
     private sealed class SecureOutgoingMessageAsyncResult : MessageSecurityProtocol.GetOneTokenAndSetUpSecurityAsyncResult
     {
       private SymmetricSecurityProtocol symmetricBinding;
@@ -341,7 +344,5 @@ namespace System.ServiceModel.Security
         this.symmetricBinding.SetUpDelayedSecurityExecution(ref message, prerequisiteWrappingToken, initiatorToken, tokenParameters, this.SupportingTokens, this.Binding.GetSignatureConfirmationCorrelationState(this.OldCorrelationState, this.NewCorrelationState));
       }
     }
-#endif
-*/
   }
 }

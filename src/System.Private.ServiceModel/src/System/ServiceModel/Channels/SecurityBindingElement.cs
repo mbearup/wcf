@@ -83,6 +83,7 @@ namespace System.ServiceModel.Channels
             _localServiceSettings = elementToBeCloned._localServiceSettings.Clone();
             _defaultAlgorithmSuite = elementToBeCloned.DefaultAlgorithmSuite;
 			enableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
+            _protectTokens = elementToBeCloned.ProtectTokens;
         }
 
 #region FromWCF
@@ -91,6 +92,18 @@ namespace System.ServiceModel.Channels
       get
       {
         return this.optionalEndpointSupportingTokenParameters;
+      }
+    }
+    
+    public bool ProtectTokens
+    {
+      get
+      {
+        return this._protectTokens;
+      }
+      set
+      {
+        this._protectTokens = value;
       }
     }
 	

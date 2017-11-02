@@ -51,7 +51,9 @@ namespace System.ServiceModel.Security
         if (this.IsDisposed)
           throw TraceUtility.ThrowHelperError(this.CreateMessageDisposedException(), (Message) this);
         if (!this.bodyDecrypted)
+        {
           return this.InnerMessage.IsFault;
+        }
         this.EnsureDecryptedBodyStatusDetermined();
         return this.isDecryptedBodyFault;
       }
@@ -79,9 +81,6 @@ namespace System.ServiceModel.Security
       this.securityHeader = securityHeader;
       if (securityHeader.RequireMessageProtection)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("BufferedMessage not supported in .NET Core");
-#else
         BufferedMessage innerMessage = this.InnerMessage as BufferedMessage;
         XmlDictionaryReader reader;
         if (innerMessage != null && this.Headers.ContainsOnlyBufferedMessageHeaders)
@@ -99,7 +98,6 @@ namespace System.ServiceModel.Security
         this.MoveToSecurityHeader(reader, securityHeader.HeaderIndex, true);
         this.cachedReaderAtSecurityHeader = reader;
         this.state = SecurityVerifiedMessage.BodyState.Buffered;
-#endif
       }
       else
       {
@@ -131,11 +129,7 @@ namespace System.ServiceModel.Security
     private XmlDictionaryReader CreateFullBodyReaderFromBufferedState()
     {
       if (this.messageBuffer == null)
-#if FEATURE_CORECLR
-        throw new NotImplementedException("BufferedMessage not supported in .NET Core");
-#else
         return ((BufferedMessage) this.InnerMessage).GetBufferedReaderAtBody();
-#endif
       XmlDictionaryReader reader = this.messageBuffer.GetReader(0);
       this.MoveToBody(reader);
       return reader;
@@ -174,11 +168,7 @@ namespace System.ServiceModel.Security
     {
       if (this.messageBuffer != null)
         return this.messageBuffer.GetReader(0);
-#if FEATURE_CORECLR
-      throw new NotImplementedException("Buffered message not supported in .NET Core");
-#else
       return ((BufferedMessage) this.InnerMessage).GetMessageReader();
-#endif
     }
 
     public XmlDictionaryReader GetReaderAtFirstHeader()
@@ -205,12 +195,8 @@ namespace System.ServiceModel.Security
         int content1 = (int) reader.MoveToContent();
       }
       reader.ReadStartElement();
-#if FEATURE_CORECLR
-      // Envelope.DictionaryNamespace not supported
-#else
       if (reader.IsStartElement(XD.MessageDictionary.Header, this.Version.Envelope.DictionaryNamespace))
         reader.Skip();
-#endif
       if (reader.NodeType == XmlNodeType.Element)
         return;
       int content2 = (int) reader.MoveToContent();
@@ -228,11 +214,7 @@ namespace System.ServiceModel.Security
         this.envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader);
       }
       reader.ReadStartElement();
-#if FEATURE_CORECLR
-      // Envelope.DictionaryNamespace not supported
-#else
       reader.MoveToStartElement(XD.MessageDictionary.Header, this.Version.Envelope.DictionaryNamespace);
-#endif
       if (!captureAttributes)
         return;
       this.headerAttributes = XmlAttributeHolder.ReadAttributes(reader);

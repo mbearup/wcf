@@ -55,6 +55,9 @@ namespace System.ServiceModel.Channels
                 ReturnXmlWriter(writer);
                 int size;
                 byte[] buffer = _stream.ToArray(out size);
+#if FEATURE_CORECLR
+                System.ServiceModel.CompatibilityShim.PrintMessageBuffer(buffer);
+#endif
                 RecordActualMessageSize(size);
                 return new ArraySegment<byte>(buffer, initialOffset, size - initialOffset);
             }

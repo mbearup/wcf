@@ -4,6 +4,7 @@
 
 
 using System.Collections.Generic;
+using System.IdentityModel;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
 using System.Runtime;
@@ -32,7 +33,9 @@ namespace System.ServiceModel.Security
         private readonly List<WSSecurityTokenSerializer.SerializerEntries> serializerEntries;
         private readonly SecurityVersion securityVersion;
         private WSSecureConversation secureConversation;
-        // private KeyInfoSerializer keyInfoSerializer;
+#if !FEATURE_CORECLR
+        private KeyInfoSerializer keyInfoSerializer;
+#endif
 #endregion
         
         public WSSecurityTokenSerializer()
@@ -79,6 +82,9 @@ namespace System.ServiceModel.Security
         public WSSecurityTokenSerializer(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, bool emitBspRequiredAttributes, SamlSerializer1 samlSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maximumKeyDerivationOffset, int maximumKeyDerivationLabelLength, int maximumKeyDerivationNonceLength)
         {
+#if FEATURE_CORECLR
+          throw new NotImplementedException("Should use compatibility shim for WSSecurityTokenSerializer");
+#else
           if (securityVersion == null)
             throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentNullException("securityVersion"));
           if (maximumKeyDerivationOffset < 0)
@@ -136,23 +142,27 @@ namespace System.ServiceModel.Security
             {
                 this.serializerEntries[index].PopulateTokenEntries((IList<WSSecurityTokenSerializer.TokenEntry>) this._tokenEntries);
             }
-            
           }
-          Console.WriteLine("Skipping WSSecurityTokenSerializer.keyInfoSerializer instantiation");
-          /*this.keyInfoSerializer = (KeyInfoSerializer) new WSKeyInfoSerializer(this.emitBspRequiredAttributes, new DictionaryManager((IXmlDictionary) ServiceModelDictionary.CurrentVersion)
+          this.keyInfoSerializer = (KeyInfoSerializer) new WSKeyInfoSerializer(this.emitBspRequiredAttributes, new DictionaryManager((IXmlDictionary) ServiceModelDictionary.CurrentVersion)
           {
             SecureConversationDec2005Dictionary = new System.IdentityModel.SecureConversationDec2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.SecureConversationDec2005Dictionary.SecureConversationDictionaryStrings)),
             SecurityAlgorithmDec2005Dictionary = new System.IdentityModel.SecurityAlgorithmDec2005Dictionary((IXmlDictionary) new WSSecurityTokenSerializer.CollectionDictionary(DXD.SecurityAlgorithmDec2005Dictionary.SecurityAlgorithmDictionaryStrings))
-          }, trustDictionary, (SecurityTokenSerializer) this, securityVersion, secureConversationVersion);*/
+          }, trustDictionary, (SecurityTokenSerializer) this, securityVersion, secureConversationVersion);
+#endif
         }
 
-        public static WSSecurityTokenSerializer DefaultInstance
+        public static SecurityTokenSerializer DefaultInstance
         {
             get
             {
+#if FEATURE_CORECLR
+                // Get serializer from WIF3.5
+                return CompatibilityShim.Serializer;
+#else
                 if (s_instance == null)
                     s_instance = new WSSecurityTokenSerializer();
                 return s_instance;
+#endif
             }
         }
 
@@ -257,8 +267,7 @@ namespace System.ServiceModel.Security
           for (int index = 0; index < this._tokenEntries.Count; ++index)
           {
             WSSecurityTokenSerializer.TokenEntry tokenEntry = this._tokenEntries[index];
-            // if (tokenEntry.SupportsCore(token.GetType()))
-            if (tokenEntry != null)
+            if (tokenEntry.SupportsCore(token.GetType()))
             {
               try
               {

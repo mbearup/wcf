@@ -20,11 +20,9 @@ namespace System.ServiceModel.Security
 {
   internal abstract class MessageSecurityProtocol : SecurityProtocol
   {
-// Trim for testing...
 
     private readonly MessageSecurityProtocolFactory factory;
     private SecurityToken identityVerifiedToken;
-/*
     protected virtual bool CacheIdentityCheckResultForToken
     {
       get
@@ -67,7 +65,7 @@ namespace System.ServiceModel.Security
       {
         return this.factory;
       }
-    }*/
+    }
 
     protected MessageSecurityProtocol(MessageSecurityProtocolFactory factory, EndpointAddress target, Uri via)
       : base((SecurityProtocolFactory) factory, target, via)
@@ -75,7 +73,7 @@ namespace System.ServiceModel.Security
       this.factory = factory;
     }
 
-    /*protected bool RequiresIncomingSecurityProcessing(Message message)
+    protected bool RequiresIncomingSecurityProcessing(Message message)
     {
       if (this.factory.ActAsInitiator && this.factory.SecurityBindingElement.EnableUnsecuredResponse && !this.factory.StandardsManager.SecurityVersion.DoesMessageContainSecurityHeader(message))
         return false;
@@ -428,11 +426,11 @@ namespace System.ServiceModel.Security
         if (!flag)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("NotAllSignaturesConfirmed")));
       }
-    }*/
+    }
 
     public override void SecureOutgoingMessage(ref Message message, TimeSpan timeout)
     {
-      /*try
+      try
       {
         this.CommunicationObject.ThrowIfClosedOrNotOpen();
         this.ValidateOutgoingState(message);
@@ -452,9 +450,9 @@ namespace System.ServiceModel.Security
           this.OnSecureOutgoingMessageFailure(message);
           throw;
         }
-      }*/
+      }
     }
-/*
+
     public override SecurityProtocolCorrelationState SecureOutgoingMessage(ref Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState)
     {
       try
@@ -489,10 +487,10 @@ namespace System.ServiceModel.Security
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("SecurityBindingNotSetUpToProcessOutgoingMessages")));
       if (message == null)
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
-    }*/
+    }
 
     public override void VerifyIncomingMessage(ref Message message, TimeSpan timeout)
-    {/*
+    {
       try
       {
         this.CommunicationObject.ThrowIfClosedOrNotOpen();
@@ -522,9 +520,9 @@ namespace System.ServiceModel.Security
           this.OnVerifyIncomingMessageFailure(message, ex);
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("MessageSecurityVerificationFailed"), ex));
         }
-      }*/
+      }
     }
-/*
+
     public override SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
     {
       try
@@ -569,7 +567,6 @@ namespace System.ServiceModel.Security
       return oldCorrelationState;
     }
 
-#if !FEATURE_CORECLR
     protected abstract class GetOneTokenAndSetUpSecurityAsyncResult : SecurityProtocol.GetSupportingTokensAsyncResult
     {
       private static AsyncCallback getTokenCompleteCallback = Fx.ThunkCallback(new AsyncCallback(MessageSecurityProtocol.GetOneTokenAndSetUpSecurityAsyncResult.GetTokenCompleteCallback));
@@ -868,7 +865,5 @@ namespace System.ServiceModel.Security
         return flag;
       }
     }
-#endif
-*/
   }
 }

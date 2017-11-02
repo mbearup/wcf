@@ -11,7 +11,7 @@ using System.Security;
 
 namespace System.IdentityModel
 {
-  internal class SafeFreeCredentials : SafeHandle
+  public class SafeFreeCredentials : SafeHandle
   {
     private const string SECURITY = "security.Dll";
     internal SSPIHandle _handle;

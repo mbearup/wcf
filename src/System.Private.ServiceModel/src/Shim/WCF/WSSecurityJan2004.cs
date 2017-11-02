@@ -54,13 +54,9 @@ namespace System.ServiceModel.Security
       {
         if (reader == null)
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
-#if FEATURE_CORECLR
-        throw new NotImplementedException("XD.XmlEncryptionDictionary is not supported in .NET Core");
-#else
-        if (reader.IsStartElement(EncryptedData.ElementName, XD.XmlEncryptionDictionary.Namespace))
-          return reader.GetAttribute(XD.XmlEncryptionDictionary.Id, (XmlDictionaryString) null);
+        if (reader.IsStartElement(EncryptedData.ElementName, System.IdentityModel.XD.XmlEncryptionDictionary.Namespace))
+          return reader.GetAttribute(System.IdentityModel.XD.XmlEncryptionDictionary.Id, (XmlDictionaryString) null);
         return reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
-#endif
       }
 
       public override void WriteIdAttribute(XmlDictionaryWriter writer, string id)

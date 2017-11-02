@@ -24,7 +24,10 @@ namespace System.ServiceModel.Description
         }
 
 #region FromWCF
+        private IssuedTokenClientCredential issuedToken;
         public bool SupportInteractive { get; set; }
+        private SecurityTokenHandlerCollectionManager1 securityTokenHandlerCollectionManager;
+        
         private bool useIdentityConfiguration;
         
         public bool UseIdentityConfiguration
@@ -38,6 +41,46 @@ namespace System.ServiceModel.Description
             if (this._isReadOnly)
               throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ObjectIsReadOnly")));
             this.useIdentityConfiguration = value;
+          }
+        }
+        
+        public IssuedTokenClientCredential IssuedToken
+        {
+          get
+          {
+            if (this.issuedToken == null)
+            {
+              this.issuedToken = new IssuedTokenClientCredential();
+              if (this._isReadOnly)
+                this.issuedToken.MakeReadOnly();
+            }
+            return this.issuedToken;
+          }
+        }
+        
+        public SecurityTokenHandlerCollectionManager1 SecurityTokenHandlerCollectionManager
+        {
+          get
+          {
+            if (this.securityTokenHandlerCollectionManager == null)
+            {
+#if FEATURE_CORECLR
+              throw new NotImplementedException("SecurityTokenHandlerCollectionManager is not implemented in .NET Core");
+#else
+              lock (this.handlerCollectionLock)
+              {
+                if (this.securityTokenHandlerCollectionManager == null)
+                  this.securityTokenHandlerCollectionManager = SecurityTokenHandlerCollectionManager1.CreateDefaultSecurityTokenHandlerCollectionManager();
+              }
+#endif
+            }
+            return this.securityTokenHandlerCollectionManager;
+          }
+          set
+          {
+            if (this._isReadOnly)
+              throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ObjectIsReadOnly")));
+            this.securityTokenHandlerCollectionManager = value;
           }
         }
 #endregion
@@ -56,6 +99,8 @@ namespace System.ServiceModel.Description
                 _windows = new WindowsClientCredential(other._windows);
             if (other._httpDigest != null)
                 _httpDigest = new HttpDigestClientCredential(other._httpDigest);
+            if (other.issuedToken != null)
+                issuedToken = new IssuedTokenClientCredential(other.issuedToken);
 
             _isReadOnly = other._isReadOnly;
         }
@@ -216,6 +261,8 @@ namespace System.ServiceModel.Description
                 _windows.MakeReadOnly();
             if (_httpDigest != null)
                 _httpDigest.MakeReadOnly();
+            if (issuedToken != null)
+                issuedToken.MakeReadOnly();
         }
     }
 }

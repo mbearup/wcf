@@ -8,7 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace System.IdentityModel
 {
-  internal struct SecureCredential
+  public struct SecureCredential
   {
     public const int CurrentVersion = 4;
     public int version;

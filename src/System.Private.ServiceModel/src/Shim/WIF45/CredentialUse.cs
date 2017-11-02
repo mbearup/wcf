@@ -6,7 +6,7 @@
 
 namespace System.IdentityModel
 {
-  internal enum CredentialUse
+  public enum CredentialUse
   {
     Inbound = 1,
     Outbound = 2,

@@ -16,11 +16,7 @@ namespace System.ServiceModel.Security
       }
     }
 
-#if FEATURE_CORECLR
-    public bool SupportsReplayDetection
-#else
     public override bool SupportsReplayDetection
-#endif
     {
       get
       {

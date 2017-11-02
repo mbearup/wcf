@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ServiceModel.Channels;
 using System.ServiceModel;
 using System.ServiceModel.Description;
+using System.ServiceModel.Diagnostics;
 using System.ServiceModel.Security.Tokens;
 using System.Collections.ObjectModel;
 using System.IdentityModel.Policy;
@@ -93,7 +94,17 @@ namespace System.ServiceModel.Security
         }
 
 #if FEATURE_CORECLR
-		internal ReceiveSecurityHeader TryCreateReceiveSecurityHeader(Message message, string actor, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
+        internal ReceiveSecurityHeader CreateReceiveSecurityHeader(Message message, string actor, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
+        {
+          ReceiveSecurityHeader receiveSecurityHeader = this.TryCreateReceiveSecurityHeader(message, actor, algorithmSuite, direction);
+          if (receiveSecurityHeader != null)
+            return receiveSecurityHeader;
+          if (string.IsNullOrEmpty(actor))
+            throw TraceUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("UnableToFindSecurityHeaderInMessageNoActor")), message);
+          throw TraceUtility.ThrowHelperError((Exception) new MessageSecurityException(SR.GetString("UnableToFindSecurityHeaderInMessage", new object[1]{ (object) actor })), message);
+        }
+        
+        internal ReceiveSecurityHeader TryCreateReceiveSecurityHeader(Message message, string actor, SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
 		{
 		  return this.SecurityVersion.TryCreateReceiveSecurityHeader(message, actor, this, algorithmSuite, direction);
 		}

@@ -380,7 +380,6 @@ namespace System.ServiceModel.Security
         return;
       this.channelSupportingTokenProviderSpecification = (ICollection<SupportingTokenProviderSpecification>) new Collection<SupportingTokenProviderSpecification>();
       this.scopedSupportingTokenProviderSpecification = new Dictionary<string, ICollection<SupportingTokenProviderSpecification>>();
-      Console.WriteLine("SecurityBindingElement is type: {0}", this.factory.SecurityBindingElement.GetType().ToString());
       this.factory.SecurityBindingElement.SetEndpointSupportingTokenParametersIfNull();
       this.AddSupportingTokenProviders(this.factory.SecurityBindingElement.EndpointSupportingTokenParameters, false, (IList<SupportingTokenProviderSpecification>) this.channelSupportingTokenProviderSpecification);
       this.AddSupportingTokenProviders(this.factory.SecurityBindingElement.OptionalEndpointSupportingTokenParameters, true, (IList<SupportingTokenProviderSpecification>) this.channelSupportingTokenProviderSpecification);

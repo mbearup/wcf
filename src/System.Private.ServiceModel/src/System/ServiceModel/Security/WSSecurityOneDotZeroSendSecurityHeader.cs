@@ -128,7 +128,9 @@ namespace System.ServiceModel.Security
     private void AddSignatureReference(SendSecurityHeaderElement[] elements)
     {
       if (elements == null)
+      {
         return;
+      }
       for (int position = 0; position < elements.Length; ++position)
       {
         SecurityKeyIdentifierClause keyIdentifierClause = (SecurityKeyIdentifierClause) null;
@@ -181,12 +183,8 @@ namespace System.ServiceModel.Security
       header.WriteStartHeader(writer1, this.Version);
       if (headerId == null)
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("SecurityStandardsManager.IdManager is not supported in .NET Core");
-#else
         headerId = this.GenerateId();
         this.StandardsManager.IdManager.WriteIdAttribute(writer1, headerId);
-#endif
       }
       header.WriteHeaderContents(writer1, this.Version);
       writer1.WriteEndElement();
@@ -555,9 +553,6 @@ namespace System.ServiceModel.Security
 
     internal override ISignatureValueSecurityElement CreateSupportingSignature(SecurityToken token, SecurityKeyIdentifier identifier, ISecurityElement elementToSign)
     {
-#if FEATURE_CORECLR
-      throw new NotImplementedException("SignedXml is not supported in .NET Core");
-#else
       SecurityAlgorithmSuite algorithmSuite = this.AlgorithmSuite;
       string signatureAlgorithm;
       SecurityKey key;
@@ -580,7 +575,6 @@ namespace System.ServiceModel.Security
       if (identifier != null)
         signedXml.Signature.KeyIdentifier = identifier;
       return (ISignatureValueSecurityElement) signedXml;
-#endif
     }
 
     protected override void WriteSecurityTokenReferencyEntry(XmlDictionaryWriter writer, SecurityToken securityToken, SecurityTokenParameters securityTokenParameters)

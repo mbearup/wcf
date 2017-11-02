@@ -427,7 +427,7 @@ namespace System.ServiceModel
         }
     }
 
-    internal class Wsrm11Dictionary
+    public class Wsrm11Dictionary
     {
         public XmlDictionaryString AckRequestedAction;
         public XmlDictionaryString CloseSequence;

@@ -135,7 +135,6 @@ namespace System.IdentityModel
             }
             if (algorithm == "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256" || algorithm == "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" || algorithm == "http://www.w3.org/2001/04/xmlenc#sha256")
             {
-                Console.WriteLine("Returning Sha256Managed()");
                 return (object) new SHA256Managed();           
             }
             throw new NotImplementedException("Unsupported algorithm " + algorithm);

@@ -333,6 +333,7 @@ namespace System.ServiceModel.Security
         throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
       this.ThrowIfProcessingStarted();
       this.elementContainer.AddEndorsingSupportingToken(token);
+      this.shouldSignToHeader = System.ServiceModel.CompatibilityShim.ShouldSignHeader;
       if (!(token is ProviderBackedSecurityToken))
       {
 #if FEATURE_CORECLR
@@ -795,7 +796,6 @@ namespace System.ServiceModel.Security
     private void SignWithSupportingTokens()
     {
       SecurityToken[] supportingTokens1 = this.elementContainer.GetEndorsingSupportingTokens();
-
       if (supportingTokens1 != null)
       {
         for (int index = 0; index < supportingTokens1.Length; ++index)
