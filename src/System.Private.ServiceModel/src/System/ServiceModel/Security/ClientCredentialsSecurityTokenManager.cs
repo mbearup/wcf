@@ -207,7 +207,11 @@ namespace System.ServiceModel
         }
 
 #region FromWCF
-        private void CopyIssuerChannelBehaviorsAndAddSecurityCredentials(/*Issued*/SecurityTokenProvider federationTokenProvider, KeyedByTypeCollection<IEndpointBehavior> issuerChannelBehaviors, EndpointAddress issuerAddress)
+#if FEATURE_CORECLR
+        private void CopyIssuerChannelBehaviorsAndAddSecurityCredentials(IssuedSecurityTokenProviderShim federationTokenProvider, KeyedByTypeCollection<IEndpointBehavior> issuerChannelBehaviors, EndpointAddress issuerAddress)
+#else
+        private void CopyIssuerChannelBehaviorsAndAddSecurityCredentials(IssuedSecurityTokenProvider federationTokenProvider, KeyedByTypeCollection<IEndpointBehavior> issuerChannelBehaviors, EndpointAddress issuerAddress)
+#endif
         {
 #if FEATURE_CORECLR
           throw new NotImplementedException("IssuedSecurityTokenProvider is not implemented in .NET Core");
@@ -233,6 +237,27 @@ namespace System.ServiceModel
           return this._parent.IssuedToken.DefaultKeyEntropyMode;
         }
         
+        private void GetIssuerBindingSecurityVersion(Binding issuerBinding, MessageSecurityVersion issuedTokenParametersDefaultMessageSecurityVersion, SecurityBindingElement outerSecurityBindingElement, out MessageSecurityVersion messageSecurityVersion, out SecurityTokenSerializer tokenSerializer)
+        {
+          messageSecurityVersion = (MessageSecurityVersion) null;
+          if (issuerBinding != null)
+          {
+            SecurityBindingElement securityBindingElement = issuerBinding.CreateBindingElements().Find<SecurityBindingElement>();
+            if (securityBindingElement != null)
+              messageSecurityVersion = securityBindingElement.MessageSecurityVersion;
+          }
+          if (messageSecurityVersion == null)
+          {
+            if (issuedTokenParametersDefaultMessageSecurityVersion != null)
+              messageSecurityVersion = issuedTokenParametersDefaultMessageSecurityVersion;
+            else if (outerSecurityBindingElement != null)
+              messageSecurityVersion = outerSecurityBindingElement.MessageSecurityVersion;
+          }
+          if (messageSecurityVersion == null)
+            messageSecurityVersion = MessageSecurityVersion.Default;
+          tokenSerializer = this.CreateSecurityTokenSerializer(messageSecurityVersion.SecurityTokenVersion);
+        }
+        
         private SecurityTokenProvider CreateIssuedSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement, FederatedClientCredentialsParameters actAsOnBehalfOfParameters)
         {
           if (initiatorRequirement.TargetAddress == (EndpointAddress) null)
@@ -256,11 +281,20 @@ namespace System.ServiceModel
           }
           if (issuerAddress == (EndpointAddress) null)
           {
+            issuerAddress = CompatibilityShim.IssuerAddress;
+          }
+          if (issuerBinding == null)
+          {
+            issuerBinding = CompatibilityShim.IssuerBinding;
+          }
+          if (issuerAddress == (EndpointAddress) null)
+          {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("StsAddressNotSet", new object[1]
             {
               (object) initiatorRequirement.TargetAddress
             })));
           }
+
           if (issuerBinding == null)
           {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("StsBindingNotSet", new object[1]
@@ -268,15 +302,15 @@ namespace System.ServiceModel
               (object) issuerAddress
             })));
           }
-#if FEATURE_CORECLR
-          throw new NotImplementedException("IssuedSecurityTokenProvider is not implemented in .NET Core");
-#else
           Uri uri = issuerAddress.Uri;
           KeyedByTypeCollection<IEndpointBehavior> channelBehaviors;
           if (!this._parent.IssuedToken.IssuerChannelBehaviors.TryGetValue(issuerAddress.Uri, out channelBehaviors) & flag)
             channelBehaviors = this._parent.IssuedToken.LocalIssuerChannelBehaviors;
+#if !FEATURE_CORECLR
           IssuedSecurityTokenProvider federationTokenProvider = new IssuedSecurityTokenProvider(this.GetCredentialsHandle(initiatorRequirement));
-          // SecurityTokenProvider federationTokenProvider = CompatibilityShim.IssuedSecurityTokenProvider(this.GetCredentialsHandle(initiatorRequirement));
+#else
+          IssuedSecurityTokenProviderShim federationTokenProvider = CompatibilityShim.IssuedSecurityTokenProvider(this.GetCredentialsHandle(initiatorRequirement));
+#endif
           federationTokenProvider.TokenHandlerCollectionManager = this._parent.SecurityTokenHandlerCollectionManager;
           federationTokenProvider.TargetAddress = initiatorRequirement.TargetAddress;
           this.CopyIssuerChannelBehaviorsAndAddSecurityCredentials(federationTokenProvider, channelBehaviors, issuerAddress);
@@ -305,7 +339,6 @@ namespace System.ServiceModel
             federationTokenProvider.ChannelParameters = result;
           federationTokenProvider.SetupActAsOnBehalfOfParameters(actAsOnBehalfOfParameters);
           return federationTokenProvider;
-#endif
         }
     
         private SecurityTokenProvider CreateSecureConversationSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)

@@ -813,7 +813,6 @@ namespace System.ServiceModel.Security.Tokens
     protected internal override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
 #endif
     {
-      Console.WriteLine("Begin InitializeSecurityTokenRequirement");
       requirement.TokenType = this.TokenType;
       requirement.RequireCryptographicToken = true;
       requirement.KeyType = this.KeyType;
