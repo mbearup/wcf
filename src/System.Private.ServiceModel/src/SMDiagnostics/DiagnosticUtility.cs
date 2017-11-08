@@ -39,6 +39,16 @@ namespace System.ServiceModel
             Console.WriteLine("[{0}] Handled exception: {1}", t, ex.ToString());
         }
 
+#if FEATURE_CORECLR
+        public static bool ShouldTraceInformation
+        {
+            get
+            {
+                return false;
+            }
+        }
+#endif
+
         public static ExceptionUtility ExceptionUtility
         {
             get

@@ -11,6 +11,8 @@ namespace System.ServiceModel
 {
   public static class CompatibilityShim
   {
+    private static bool debugMode = false;
+
     public static SecurityTokenSerializer Serializer
     {
         get; set;
@@ -38,9 +40,20 @@ namespace System.ServiceModel
         return IssuedSecurityTokenProviderConstructor(creds);
     }
 
+    public static bool DebugMode
+    {
+        get
+        {
+            return debugMode;
+        }
+    }
+
     public static void Print(string message, params string[] list)
     {
-        Console.WriteLine(message, list);
+        if (DebugMode)
+        {
+            Console.WriteLine(message, list);
+        }
     }
 
     public static void PrintMessageBuffer(byte[] buffer, int start, int size)
