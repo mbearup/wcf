@@ -562,7 +562,7 @@ namespace System.ServiceModel.Security
         for (int index = 0; index < supportingTokenProviders.Count; ++index)
         {
           SupportingTokenProviderSpecification providerSpecification = supportingTokenProviders[index];
-          Console.WriteLine("Skipping KerberosSecurityTokenParameters - should not be needed");
+          CompatibilityShim.Log("Skipping KerberosSecurityTokenParameters - should not be needed");
 //           SecurityToken token = !(this is TransportSecurityProtocol) || !(providerSpecification.TokenParameters is KerberosSecurityTokenParameters) ? providerSpecification.TokenProvider.GetToken(timeoutHelper.RemainingTime()) : (SecurityToken) new ProviderBackedSecurityToken(providerSpecification.TokenProvider, timeoutHelper.RemainingTime());
           SecurityToken token = !(this is TransportSecurityProtocol) ? providerSpecification.TokenProvider.GetToken(timeoutHelper.RemainingTime()) : (SecurityToken) new ProviderBackedSecurityToken(providerSpecification.TokenProvider, timeoutHelper.RemainingTime());
           supportingTokens.Add(new SupportingTokenSpecification(token, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, providerSpecification.SecurityTokenAttachmentMode, providerSpecification.TokenParameters));

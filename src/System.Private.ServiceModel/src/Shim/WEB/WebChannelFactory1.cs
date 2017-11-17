@@ -76,14 +76,10 @@ namespace System.ServiceModel.Web
         return;
       if (this.Endpoint.Binding == null && this.Endpoint.Address != (EndpointAddress) null)
         this.Endpoint.Binding = WebChannelFactory<TChannel>.GetDefaultBinding(this.Endpoint.Address.Uri);
-#if FEATURE_CORECLR
-      throw new NotImplementedException("WebServiceHost is not implemented in .NET Core");
-#else
       WebServiceHost.SetRawContentTypeMapperIfNecessary(this.Endpoint, false);
       if (this.Endpoint.Behaviors.Find<WebHttpBehavior>() == null)
         this.Endpoint.Behaviors.Add((IEndpointBehavior) new WebHttpBehavior());
       base.OnOpening();
-#endif
     }
 
     private static Binding GetDefaultBinding(Uri remoteAddress)

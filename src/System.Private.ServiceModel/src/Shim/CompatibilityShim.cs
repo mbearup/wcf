@@ -48,7 +48,7 @@ namespace System.ServiceModel
         }
     }
 
-    public static void Print(string message, params string[] list)
+    public static void Log(string message, params string[] list)
     {
         if (DebugMode)
         {
@@ -56,8 +56,13 @@ namespace System.ServiceModel
         }
     }
 
-    public static void PrintMessageBuffer(byte[] buffer, int start, int size)
+    public static void LogMessageBuffer(byte[] buffer, int start, int size)
     {
+        if (!DebugMode)
+        {
+            return;
+        }
+        
         byte[] messageBuffer = new byte[size];
         Array.Copy(buffer, start, messageBuffer, 0, size);
         string m1 = System.Text.Encoding.UTF8.GetString(messageBuffer);
@@ -75,7 +80,7 @@ namespace System.ServiceModel
             catch (Exception)
             {}
         }
-        Print("BufferedMessage {0}", m1);
+        Log("BufferedMessage {0}", m1);
     }
 
     // This should be set elsewhere. 

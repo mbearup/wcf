@@ -28,14 +28,10 @@ namespace System.ServiceModel
       }
       set
       {
-#if FEATURE_CORECLR
-        throw new NotImplementedException("WebHttpSecurityModeHelper is not implemented in .NET Core");
-#else
         if (!WebHttpSecurityModeHelper.IsDefined(value))
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("value"));
         this.mode = value;
         this.isModeSet = true;
-#endif
       }
     }
 

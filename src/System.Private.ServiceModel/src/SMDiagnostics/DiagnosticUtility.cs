@@ -36,7 +36,7 @@ namespace System.ServiceModel
 
         public static void TraceHandledException(Exception ex, TraceEventType t)
         {
-            Console.WriteLine("[{0}] Handled exception: {1}", t, ex.ToString());
+            CompatibilityShim.Log("[{0}] Handled exception: {1}", t.ToString(), ex.ToString());
         }
 
 #if FEATURE_CORECLR

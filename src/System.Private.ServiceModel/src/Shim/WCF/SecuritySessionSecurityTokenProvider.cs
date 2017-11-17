@@ -344,7 +344,7 @@ namespace System.ServiceModel.Security
       if (this.BootstrapSecurityBindingElement == null)
         throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("BootstrapSecurityBindingElementNotSet", new object[1]{ (object) this.GetType() })));
 #if FEATURE_CORECLR
-      Console.WriteLine("TODO skipping CredentialsHandle as it should NOT be needed");
+      CompatibilityShim.Log("TODO skipping CredentialsHandle as it should NOT be needed");
       this.ownCredentialsHandle = false;
 #else
       this.credentialsHandle = SecurityUtils.GetCredentialsHandle(this.bootstrapSecurityBindingElement, this.issuerBindingContext);

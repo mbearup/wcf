@@ -547,13 +547,13 @@ namespace System.ServiceModel.Security
         tokenRequirement.TargetAddress = this.to;
         tokenRequirement.Via = this.Via;
         if (this.Settings.SessionProtocolFactory == null)
-        { Console.WriteLine("Settings.SessionProtocolFactory is null"); }
+        { CompatibilityShim.Log("Settings.SessionProtocolFactory is null"); }
         else if (this.Settings.SessionProtocolFactory.MessageSecurityVersion == null)
-        { Console.WriteLine("Settings.SessionProtocolFactory.MessageSecurityVersion is null"); }
+        { CompatibilityShim.Log("Settings.SessionProtocolFactory.MessageSecurityVersion is null"); }
         tokenRequirement.MessageSecurityVersion = this.Settings.SessionProtocolFactory.MessageSecurityVersion.SecurityTokenVersion;
         tokenRequirement.Properties[ServiceModelSecurityTokenRequirement.PrivacyNoticeUriProperty] = (object) this.Settings.SessionProtocolFactory.PrivacyNoticeUri;
 #if FEATURE_CORECLR
-        Console.WriteLine("Skipping InitiatorServiceModelSecurityTokenRequirement.WebHeaders");
+        CompatibilityShim.Log("Skipping InitiatorServiceModelSecurityTokenRequirement.WebHeaders");
 #else
         tokenRequirement.WebHeaders = this.webHeaderCollection;
 #endif

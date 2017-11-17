@@ -652,7 +652,7 @@ namespace System.ServiceModel.Channels
             }
             if (faultException != null)
             {
-              System.ServiceModel.CompatibilityShim.Print("Reply Body: {0}", reply.ToString());
+              System.ServiceModel.CompatibilityShim.Log("Reply Body: {0}", reply.ToString());
               this.Fault(faultException);
               throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(faultException);
             }
