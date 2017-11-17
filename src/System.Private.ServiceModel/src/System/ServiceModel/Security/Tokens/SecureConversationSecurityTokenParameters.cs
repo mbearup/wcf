@@ -50,7 +50,7 @@ namespace System.ServiceModel.Security.Tokens
 #if FEATURE_CORECLR
     protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
     {
-      Console.WriteLine("SecureConversationSecurityTokenParameters.CreateKeyIdentifierClause");
+      CompatibilityShim.Log("SecureConversationSecurityTokenParameters.CreateKeyIdentifierClause");
       if (token is GenericXmlSecurityToken)
         return this.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
       return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);

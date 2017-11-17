@@ -327,7 +327,7 @@ namespace System.ServiceModel.Security
             break;
           }
 #else
-          Console.WriteLine("Skipping KerberosSecurityTokenParameters");
+          CompatibilityShim.Log("Skipping KerberosSecurityTokenParameters");
 #endif
         }
       }
@@ -894,7 +894,7 @@ namespace System.ServiceModel.Security
 
         internal static SecurityStandardsManager CreateSecurityStandardsManager(MessageSecurityVersion securityVersion, SecurityTokenManager tokenManager)
         {
-            Console.WriteLine("Creating SecurityTokenSerializer");
+            CompatibilityShim.Log("Creating SecurityTokenSerializer");
             SecurityTokenSerializer tokenSerializer = tokenManager.CreateSecurityTokenSerializer(securityVersion.SecurityTokenVersion);
             return new SecurityStandardsManager(securityVersion, tokenSerializer);
         }

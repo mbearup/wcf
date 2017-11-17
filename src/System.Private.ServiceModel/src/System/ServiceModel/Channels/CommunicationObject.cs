@@ -442,7 +442,7 @@ namespace System.ServiceModel.Channels
         {
             if (ex != null)
             {
-                Console.WriteLine("Fault: {0}", ex.ToString());
+                CompatibilityShim.Log("Fault: {0}", ex.ToString());
             }
             lock (ThisLock)
             {

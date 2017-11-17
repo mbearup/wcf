@@ -83,7 +83,7 @@ namespace System.ServiceModel
         if (ServiceModelAppSettings.settingsInitalized)
           return;
         NameValueCollection nameValueCollection = (NameValueCollection) null;
-        Console.WriteLine("TODO - skipping ConfigurationManager due to missing dependency");
+        CompatibilityShim.Log("TODO - skipping ConfigurationManager due to missing dependency");
         /*try
         {
           nameValueCollection = ConfigurationManager.AppSettings;

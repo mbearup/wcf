@@ -56,7 +56,7 @@ namespace System.ServiceModel.Channels
                 int size;
                 byte[] buffer = _stream.ToArray(out size);
 #if FEATURE_CORECLR
-                System.ServiceModel.CompatibilityShim.PrintMessageBuffer(buffer, initialOffset, size);
+                System.ServiceModel.CompatibilityShim.LogMessageBuffer(buffer, initialOffset, size);
 #endif
                 RecordActualMessageSize(size);
                 return new ArraySegment<byte>(buffer, initialOffset, size - initialOffset);

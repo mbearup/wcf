@@ -40,7 +40,7 @@ namespace System.ServiceModel.Security
       else
       {  
 #if FEATURE_CORECLR
-          Console.WriteLine("Skipping AsymmetricSecurityBindingElement");
+          CompatibilityShim.Log("Skipping AsymmetricSecurityBindingElement");
 #else
           if (this.sbe is AsymmetricSecurityBindingElement)
           {
@@ -74,7 +74,7 @@ namespace System.ServiceModel.Security
           yield return securityTokenParameters;
       }
 #if FEATURE_CORECLR
-      Console.WriteLine("Skipping sbe.OperationSupportingTokenParameters");
+      CompatibilityShim.Log("Skipping SecurityBindingElement.OperationSupportingTokenParameters");
 #else
       foreach (SupportingTokenParameters supportingTokenParameters in (IEnumerable<SupportingTokenParameters>) this.sbe.OperationSupportingTokenParameters.Values)
       {

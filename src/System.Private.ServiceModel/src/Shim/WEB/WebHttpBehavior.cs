@@ -375,7 +375,6 @@ namespace System.ServiceModel.Description
 #endif
     }
 
-#if !FEATURE_CORECLR
     internal static string GetDescription(OperationDescription od)
     {
       object[] objArray = (object[]) null;
@@ -394,7 +393,6 @@ namespace System.ServiceModel.Description
         return message.MessageType != (System.Type) null;
       return false;
     }
-#endif
 
     internal static bool IsUntypedMessage(MessageDescription message)
     {

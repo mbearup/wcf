@@ -284,7 +284,7 @@ namespace System.IdentityModel.Tokens
           throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new NotSupportedException(SR.GetString("AlgorithmAndPrivateKeyMisMatch"), (Exception) ex));
         }
 #if FEATURE_CORECLR
-        Console.WriteLine("Would normally throw an unsupported error - continuing... {0}", algorithm);
+        CompatibilityShim.Log("Would normally throw an unsupported error - continuing... {0}", algorithm);
 #else
         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new CryptographicException(SR.GetString("UnsupportedAlgorithmForCryptoOperation", (object) algorithm, (object) "GetSignatureFormatter")));
 #endif
@@ -320,7 +320,7 @@ namespace System.IdentityModel.Tokens
     private static AsymmetricAlgorithm LevelUpRsa(AsymmetricAlgorithm asymmetricAlgorithm, string algorithm)
     {
 #if FEATURE_CORECLR
-      Console.WriteLine("TODO - skipping LocalAppContextSwitches.DisableUpdatingRsaProviderType");
+      CompatibilityShim.Log("TODO - skipping LocalAppContextSwitches.DisableUpdatingRsaProviderType");
 #else
       if (System.IdentityModel.LocalAppContextSwitches.DisableUpdatingRsaProviderType)
         return asymmetricAlgorithm;

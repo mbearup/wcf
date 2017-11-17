@@ -137,32 +137,32 @@ namespace System.ServiceModel.Channels
 
     public void SetEndpointSupportingTokenParametersIfNull()
     {
-        Console.WriteLine("TODO - SupportingTokenParameters should be instantiated automatically");
+        System.ServiceModel.CompatibilityShim.Log("TODO - SupportingTokenParameters should be instantiated automatically");
         if (_endpointSupportingTokenParameters == null)
         {
-            Console.WriteLine("_endpointSupportingTokenParameters is null. Instantiating");
+            CompatibilityShim.Log("_endpointSupportingTokenParameters is null. Instantiating");
             _endpointSupportingTokenParameters = new SupportingTokenParameters();
         }
         if (optionalEndpointSupportingTokenParameters == null)
         {
-            Console.WriteLine("optionalEndpointSupportingTokenParameters is null. Instantiating");
+            CompatibilityShim.Log("optionalEndpointSupportingTokenParameters is null. Instantiating");
             optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
         }
         if (operationSupportingTokenParameters == null)
         {
-            Console.WriteLine("operationSupportingTokenParameters is null. Instantiating");
+            CompatibilityShim.Log("operationSupportingTokenParameters is null. Instantiating");
             operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
         }
         if (optionalOperationSupportingTokenParameters == null)
         {
-            Console.WriteLine("optionalOperationSupportingTokenParameters is null. Instantiating");
+            CompatibilityShim.Log("optionalOperationSupportingTokenParameters is null. Instantiating");
             optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
         }
     }
     
     internal void ApplyAuditBehaviorSettings(BindingContext context, SecurityProtocolFactory factory)
     {
-        Console.WriteLine("TODO - skipping ApplyAuditBehaviorSettings");
+        CompatibilityShim.Log("TODO - skipping ApplyAuditBehaviorSettings");
     }
     
     public SecurityKeyEntropyMode KeyEntropyMode
@@ -273,7 +273,7 @@ namespace System.ServiceModel.Channels
       if (security == null)
         return (ChannelProtectionRequirements) null;
       ChannelProtectionRequirements requirements = (ChannelProtectionRequirements) null;
-      Console.WriteLine("TODO - Skipping AsymmetricSecurityBindingElement because it's not supported");
+      CompatibilityShim.Log("TODO - Skipping AsymmetricSecurityBindingElement because it's not supported");
 //      if (security is SymmetricSecurityBindingElement || security is AsymmetricSecurityBindingElement)
       if (security is SymmetricSecurityBindingElement)
       {
@@ -658,10 +658,6 @@ namespace System.ServiceModel.Channels
         {
             get
             {
-                if (_endpointSupportingTokenParameters == null)
-                {
-                    Console.WriteLine("Getting _endpointSupportingTokenParameters but it's NULL");
-                }
                 return _endpointSupportingTokenParameters;
             }
         }
@@ -829,7 +825,7 @@ namespace System.ServiceModel.Channels
             if (issuerBindingContext.RemainingBindingElements[index] is ChannelDemuxerBindingElement)
               demuxerBindingElement = (ChannelDemuxerBindingElement) issuerBindingContext.RemainingBindingElements[index];
           }
-          Console.WriteLine("TODO - add ChannelDemuxerBindingElement");
+          CompatibilityShim.Log("TODO - add ChannelDemuxerBindingElement");
           // if (demuxerBindingElement == null)
           //   throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new InvalidOperationException(SR.GetString("ChannelDemuxerBindingElementNotFound")));
           BindingElementCollection bindingElements = new BindingElementCollection();
@@ -1011,9 +1007,7 @@ namespace System.ServiceModel.Channels
         // reflected in the corresponding IsMutualCertificateBinding() method.
         static public SecurityBindingElement CreateMutualCertificateBindingElement()
         {
-            Console.WriteLine("TODO SecurityBindingElement.CreateMutualCertificateBindingElement using MessageSecurityVersion.WSTrust13");
             return CreateMutualCertificateBindingElement(MessageSecurityVersion.Default);
-            // return CreateMutualCertificateBindingElement(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11);
         }
 
         // this method reverses CreateMutualCertificateBindingElement() logic

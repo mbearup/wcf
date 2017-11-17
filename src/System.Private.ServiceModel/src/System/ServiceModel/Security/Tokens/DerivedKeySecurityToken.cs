@@ -53,7 +53,7 @@ namespace System.ServiceModel.Security.Tokens
         {
           byte[] numArray = new byte[minNonceLength];
           new RNGCryptoServiceProvider().GetBytes(numArray);
-          Console.WriteLine("TODO - Initialize  derived key?");
+          CompatibilityShim.Log("TODO - Initialize  derived key?");
           this.Initialize(id, generation, offset, length, label, numArray, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, false); // False?
         }
         
@@ -91,7 +91,7 @@ namespace System.ServiceModel.Security.Tokens
           this._keyDerivationAlgorithm = derivationAlgorithm;
           if (!initializeDerivedKey)
             return;
-          Console.WriteLine("TODO - skipping InitializeDerivedKey");
+          CompatibilityShim.Log("TODO - skipping InitializeDerivedKey");
           // this.InitializeDerivedKey(this.length);
         }
         

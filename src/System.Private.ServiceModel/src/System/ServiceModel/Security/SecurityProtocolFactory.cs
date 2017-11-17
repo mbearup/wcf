@@ -229,7 +229,7 @@ namespace System.ServiceModel.Security
       tokenRequirement.MessageAuthenticationAuditLevel = this.messageAuthenticationAuditLevel;
       tokenRequirement.Properties[ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy] = (object) this.extendedProtectionPolicy;
 #if FEATURE_CORECLR
-      Console.WriteLine("TODO - skipping endpointFilterTable");
+      CompatibilityShim.Log("TODO - skipping endpointFilterTable");
 #else
       if (this.endpointFilterTable != null)
         tokenRequirement.Properties.Add(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, (object) this.endpointFilterTable);

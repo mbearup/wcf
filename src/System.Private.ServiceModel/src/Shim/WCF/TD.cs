@@ -25,7 +25,7 @@ namespace System.ServiceModel.Diagnostics.Application
 
     internal static void ReceiveTimeout(string param0)
     {
-      Console.WriteLine("ReceiveTimeout: {0}", param0);
+      CompatibilityShim.Log("ReceiveTimeout: {0}", param0);
     }
 
     internal static bool CloseTimeoutIsEnabled()
@@ -35,7 +35,7 @@ namespace System.ServiceModel.Diagnostics.Application
 
     internal static void CloseTimeout(string param0)
     {
-      Console.WriteLine("CloseTimeout: {0}", param0);
+      CompatibilityShim.Log("CloseTimeout: {0}", param0);
     }
 
     internal static bool MessageReceivedFromTransportIsEnabled()

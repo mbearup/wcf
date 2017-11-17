@@ -111,12 +111,12 @@ namespace System.ServiceModel.Security
           }
           if (securityVersion == SecurityVersion.WSSecurity10)
           {
-            Console.WriteLine("TODO - skipping serializerEntries for WSSecurity10)");
+            CompatibilityShim.Log("TODO - skipping serializerEntries for WSSecurity10)");
             // this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSSecurityJan2004(this, samlSerializer));
           }
           else
           {
-            Console.WriteLine("TODO - skipping serializerEntries for WSSecurity11");
+            CompatibilityShim.Log("TODO - skipping serializerEntries for WSSecurity11");
             // if (securityVersion != SecurityVersion.WSSecurity11)
             //   throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception) new ArgumentOutOfRangeException("securityVersion", SR.GetString("MessageSecurityVersionOutOfRange")));
             // this.serializerEntries.Add((WSSecurityTokenSerializer.SerializerEntries) new WSSecurityXXX2005(this, samlSerializer));

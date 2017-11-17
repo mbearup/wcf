@@ -1351,7 +1351,7 @@ namespace System.ServiceModel.Security
 #endif
           else
           {
-            Console.WriteLine("TODO WrappedKeySecurityToken not supported in .NET Core!");
+            CompatibilityShim.Log("TODO WrappedKeySecurityToken not supported in .NET Core!");
             throw System.ServiceModel.DiagnosticUtility.ExceptionUtility.ThrowHelperWarning((Exception) new InvalidOperationException(SR.GetString("TokenCannotCreateSymmetricCrypto", new object[1]{ (object) requestorEntropy1 })));
           }
         }
