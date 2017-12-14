@@ -46,6 +46,11 @@ namespace System.ServiceModel
         {
             return debugMode;
         }
+
+        set
+        {
+            debugMode = value;
+        }
     }
 
     public static void Log(string message, params string[] list)
