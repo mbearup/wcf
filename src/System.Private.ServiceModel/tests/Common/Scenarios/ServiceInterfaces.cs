@@ -83,6 +83,12 @@ public interface IWcfService
 
     [OperationContract]
     void ReturnContentType(string contentType);
+
+    [OperationContract]
+    bool IsHttpKeepAliveDisabled();
+
+    [OperationContract]
+    Dictionary<string, string> GetRequestHttpHeaders();
 }
 
 [ServiceContract]
@@ -136,6 +142,10 @@ public interface IWcfSoapService
     [ServiceKnownType(typeof(AdditionalData))]
     [return: MessageParameter(Name = "ProcessCustomerDataReturn")]
     string ProcessCustomerData(CustomerObject CustomerData);
+
+    [OperationContract(Action = "http://tempuri.org/IWcfService/Ping", ReplyAction = "http://tempuri.org/IWcfSoapService/PingResponse")]
+    [XmlSerializerFormat(Style = OperationFormatStyle.Rpc, SupportFaults = true, Use = OperationFormatUse.Encoded)]
+    PingEncodedResponse Ping(PingEncodedRequest request);
 }
 
 // This type share the same name space with IWcfServiceXmlGenerated.
@@ -635,5 +645,60 @@ public interface IXmlSFAttribute
         Name = "FaultDetailWithXmlSerializerFormatAttribute",
         Namespace = "http://www.contoso.com/wcfnamespace")]
     void TestXmlSerializerSupportsFaults_False();
+}
 
+[ServiceContract(Namespace = "http://contoso.com/calc"), XmlSerializerFormat]
+public interface ICalculator
+{
+    [OperationContract, XmlSerializerFormat]
+    int Sum2(int i, int j);
+
+    [OperationContract, XmlSerializerFormat]
+    int Sum(IntParams par);
+
+    [OperationContract, XmlSerializerFormat]
+    float Divide(FloatParams par);
+
+    [OperationContract, XmlSerializerFormat]
+    string Concatenate(IntParams par);
+
+    [OperationContract, XmlSerializerFormat]
+    void AddIntParams(Guid guid, IntParams par);
+
+    [OperationContract, XmlSerializerFormat]
+    IntParams GetAndRemoveIntParams(Guid guid);
+
+    [OperationContract, XmlSerializerFormat]
+    DateTime ReturnInputDateTime(DateTime dt);
+
+    [OperationContract, XmlSerializerFormat]
+    byte[] CreateSet(ByteParams par);
+}
+
+[ServiceContract, XmlSerializerFormat]
+public interface IHelloWorld
+{
+    [OperationContract, XmlSerializerFormat]
+    void AddString(Guid guid, string testString);
+
+    [OperationContract, XmlSerializerFormat]
+    string GetAndRemoveString(Guid guid);
+}
+
+public class IntParams
+{
+    public int P1;
+    public int P2;
+}
+
+public class FloatParams
+{
+    public float P1;
+    public float P2;
+}
+
+public class ByteParams
+{
+    public byte P1;
+    public byte P2;
 }

@@ -8,6 +8,7 @@
     <NugetRuntimeIdentifier Condition="'$(TargetGroup)' == 'uap'">win10-$(ArchGroup)</NugetRuntimeIdentifier>
     <NugetRuntimeIdentifier Condition="'$(TargetGroup)' == 'uapaot'">win10-$(ArchGroup)-aot</NugetRuntimeIdentifier>
     <RidSpecificAssets>true</RidSpecificAssets>
+    <NoWarn>$(NoWarn);NU1603;NU1605</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetGroup)' == 'uapaot'">
@@ -22,6 +23,7 @@
     <FileToExclude Include="System.Private.CoreLib.Augments" />
     <FileToExclude Include="System.Private.CoreLib.DynamicDelegate" />
     <FileToExclude Include="System.Private.CoreLib.WinRTInterop" />
+    <FileToExclude Include="System.Private.ServiceModel" />
     <PackageReference Include="NETStandard.Library">
       <Version>$(NETStandardPackageVersion)</Version>
     </PackageReference>
@@ -41,10 +43,10 @@
       <Version>$(MicrosoftPrivateCoreFxNETCoreAppPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.DotNetHost">
-      <Version>$(DotNetHostPackageVersion)</Version>
+      <Version>$(MicrosoftNETCoreDotNetHostPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.DotNetHostPolicy">
-      <Version>$(DotNetHostPackageVersion)</Version>
+      <Version>$(MicrosoftNETCoreDotNetHostPolicyPackageVersion)</Version>
     </PackageReference>
   </ItemGroup>
 
@@ -72,6 +74,8 @@
           DestinationFolder="$(TestHostRootPath)"
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
+          
+    <Exec Command="chmod +x $(TestHostRootPath)dotnet" Condition="'$(RunningOnUnix)' == 'true'"/>
 
   </Target>
 

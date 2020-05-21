@@ -23,8 +23,8 @@ namespace System.ServiceModel.Channels
         private ChannelBinding _channelBindingToken;
 
         public StreamedFramingRequestChannel(ChannelManagerBase factory, IConnectionOrientedTransportChannelFactorySettings settings,
-            EndpointAddress remoteAddresss, Uri via, IConnectionInitiator connectionInitiator, ConnectionPool connectionPool)
-            : base(factory, remoteAddresss, via, settings.ManualAddressing)
+            EndpointAddress remoteAddress, Uri via, IConnectionInitiator connectionInitiator, ConnectionPool connectionPool)
+            : base(factory, remoteAddress, via, settings.ManualAddressing)
         {
             _settings = settings;
             _connectionInitiator = connectionInitiator;
@@ -104,12 +104,10 @@ namespace System.ServiceModel.Channels
                     ConnectionUpgradeHelper.DecodeFramingFault(decoder, connection, Via, _messageEncoder.ContentType, ref timeoutHelper);
                 }
 
-#if FEATURE_CORECLR // ExtendedProtection
                 if (channelBindingProvider != null && channelBindingProvider.IsChannelBindingSupportEnabled)
                 {
                     _channelBindingToken = channelBindingProvider.GetChannelBinding(upgradeInitiator, ChannelBindingKind.Endpoint);
                 }
-#endif // FEATURE_CORECLR // ExtendedProtection
 
                 remoteSecurity = StreamSecurityUpgradeInitiator.GetRemoteSecurity(upgradeInitiator);
 
