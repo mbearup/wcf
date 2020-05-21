@@ -10,7 +10,7 @@ using System.Text;
 using Infrastructure.Common;
 using Xunit;
 
-public static class MessageVersionTests
+public static partial class MessageVersionTests
 {
     // Client and Server bindings setup exactly the same using Soap12WSA10
     [WcfFact]

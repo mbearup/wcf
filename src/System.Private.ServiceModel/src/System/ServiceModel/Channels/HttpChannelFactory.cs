@@ -37,8 +37,12 @@ namespace System.ServiceModel.Channels
         private bool _allowCookies;
         private AuthenticationSchemes _authenticationScheme;
         private HttpCookieContainerManager _httpCookieContainerManager;
+
+        // Double-checked locking pattern requires volatile for read/write synchronization
+        private volatile MruCache<Uri, Uri> _credentialCacheUriPrefixCache;
         private volatile MruCache<string, string> _credentialHashCache;
         private volatile MruCache<string, HttpClient> _httpClientCache;
+
         private int _maxBufferSize;
         private IWebProxy _proxy;
         private WebProxyFactory _proxyFactory;
@@ -46,10 +50,11 @@ namespace System.ServiceModel.Channels
         private SecurityTokenManager _securityTokenManager;
         private TransferMode _transferMode;
         private ISecurityCapabilities _securityCapabilities;
+        private Func<HttpClientHandler, HttpMessageHandler> _httpMessageHandlerFactory;
         private WebSocketTransportSettings _webSocketSettings;
-        private bool _useDefaultWebProxy;
         private Lazy<string> _webSocketSoapContentType;
         private SHA512 _hashAlgorithm;
+        private bool _keepAliveEnabled;
 
         internal HttpChannelFactory(HttpTransportBindingElement bindingElement, BindingContext context)
             : base(bindingElement, context, HttpTransportDefaults.GetDefaultMessageEncoderFactory())
@@ -102,6 +107,7 @@ namespace System.ServiceModel.Channels
             _authenticationScheme = bindingElement.AuthenticationScheme;
             _maxBufferSize = bindingElement.MaxBufferSize;
             _transferMode = bindingElement.TransferMode;
+            _keepAliveEnabled = bindingElement.KeepAliveEnabled;
 
             if (bindingElement.ProxyAddress != null)
             {
@@ -129,6 +135,7 @@ namespace System.ServiceModel.Channels
 
             _channelCredentials = context.BindingParameters.Find<SecurityCredentialsManager>();
             _securityCapabilities = bindingElement.GetProperty<ISecurityCapabilities>(context);
+            _httpMessageHandlerFactory = context.BindingParameters.Find<Func<HttpClientHandler, HttpMessageHandler>>();
 
             _webSocketSettings = WebSocketHelper.GetRuntimeWebSocketSettings(bindingElement.WebSocketSettings);
             _clientWebSocketFactory = ClientWebSocketFactory.GetFactory();
@@ -233,6 +240,11 @@ namespace System.ServiceModel.Channels
             }
         }
 
+        private bool AuthenticationSchemeMayRequireResend()
+        {
+            return AuthenticationScheme != AuthenticationSchemes.Anonymous;
+        }
+
         public override T GetProperty<T>()
         {
             if (typeof(T) == typeof(ISecurityCapabilities))
@@ -252,7 +264,34 @@ namespace System.ServiceModel.Channels
             return _httpCookieContainerManager;
         }
 
-        internal async Task<HttpClient> GetHttpClientAsync(EndpointAddress to,
+        private Uri GetCredentialCacheUriPrefix(Uri via)
+        {
+            Uri result;
+
+            if (_credentialCacheUriPrefixCache == null)
+            {
+                lock (ThisLock)
+                {
+                    if (_credentialCacheUriPrefixCache == null)
+                    {
+                        _credentialCacheUriPrefixCache = new MruCache<Uri, Uri>(10);
+                    }
+                }
+            }
+
+            lock (_credentialCacheUriPrefixCache)
+            {
+                if (!_credentialCacheUriPrefixCache.TryGetValue(via, out result))
+                {
+                    result = new UriBuilder(via.Scheme, via.Host, via.Port).Uri;
+                    _credentialCacheUriPrefixCache.Add(via, result);
+                }
+            }
+
+            return result;
+        }
+
+        internal async Task<HttpClient> GetHttpClientAsync(EndpointAddress to, Uri via,
             SecurityTokenProviderContainer tokenProvider, SecurityTokenProviderContainer proxyTokenProvider,
             SecurityTokenContainer clientCertificateToken, CancellationToken cancellationToken)
         {
@@ -294,17 +333,22 @@ namespace System.ServiceModel.Channels
 
             if (!foundHttpClient)
             {
-                var clientHandler = GetHttpMessageHandler(to, clientCertificateToken);
+                var clientHandler = GetHttpClientHandler(to, clientCertificateToken);
                 clientHandler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
 
-                if (_proxy != null)
+                if (clientHandler.SupportsProxy)
                 {
-                    clientHandler.Proxy = _proxy;
-                }
-                else if (_proxyFactory != null)
-                {
-                    clientHandler.Proxy = await _proxyFactory.CreateWebProxyAsync(authenticationLevelWrapper.Value,
-                        impersonationLevelWrapper.Value, proxyTokenProvider, cancellationToken);
+                    if (_proxy != null)
+                    {
+                        clientHandler.Proxy = _proxy;
+                        clientHandler.UseProxy = true;
+                    }
+                    else if (_proxyFactory != null)
+                    {
+                        clientHandler.Proxy = await _proxyFactory.CreateWebProxyAsync(authenticationLevelWrapper.Value,
+                            impersonationLevelWrapper.Value, proxyTokenProvider, cancellationToken);
+                        clientHandler.UseProxy = true;
+                    }
                 }
 
                 clientHandler.UseCookies = _allowCookies;
@@ -314,22 +358,37 @@ namespace System.ServiceModel.Channels
                 }
 
                 clientHandler.PreAuthenticate = true;
-                if (clientHandler.SupportsProxy)
-                {
-                    clientHandler.UseProxy = _useDefaultWebProxy;
-                }
 
                 clientHandler.UseDefaultCredentials = false;
-                if (credential == CredentialCache.DefaultCredentials)
+                if (credential == CredentialCache.DefaultCredentials || credential == null)
                 {
                     clientHandler.UseDefaultCredentials = true;
                 }
                 else
                 {
-                    clientHandler.Credentials = credential;
+                    CredentialCache credentials = new CredentialCache();
+                    credentials.Add(GetCredentialCacheUriPrefix(via),
+                        AuthenticationSchemesHelper.ToString(_authenticationScheme), credential);
+                    clientHandler.Credentials = credentials;
                 }
 
-                httpClient = new HttpClient(clientHandler);
+                HttpMessageHandler handler = clientHandler;
+                if(_httpMessageHandlerFactory!= null)
+                {
+                    handler = _httpMessageHandlerFactory(clientHandler);
+                }
+
+                httpClient = new HttpClient(handler);
+
+                if(!_keepAliveEnabled)
+                   httpClient.DefaultRequestHeaders.ConnectionClose = true;
+
+#if !FEATURE_NETNATIVE // Expect continue not correctly supported on UAP
+                if (IsExpectContinueHeaderRequired)
+                {
+                    httpClient.DefaultRequestHeaders.ExpectContinue = true;
+                }
+#endif
 
                 // We provide our own CancellationToken for each request. Setting HttpClient.Timeout to -1 
                 // prevents a call to CancellationToken.CancelAfter that HttpClient does internally which
@@ -354,9 +413,11 @@ namespace System.ServiceModel.Channels
             return httpClient;
         }
 
-        internal virtual ServiceModelHttpMessageHandler GetHttpMessageHandler(EndpointAddress to, SecurityTokenContainer clientCertificateToken)
+        internal virtual bool IsExpectContinueHeaderRequired => AuthenticationSchemeMayRequireResend();
+
+        internal virtual HttpClientHandler GetHttpClientHandler(EndpointAddress to, SecurityTokenContainer clientCertificateToken)
         {
-            return new ServiceModelHttpMessageHandler();
+            return new HttpClientHandler();
         }
 
         internal ICredentials GetCredentials()
@@ -901,7 +962,7 @@ namespace System.ServiceModel.Channels
 
                 try
                 {
-                    return await Factory.GetHttpClientAsync(to, requestTokenProvider, requestProxyTokenProvider, clientCertificateToken, await timeoutHelper.GetCancellationTokenAsync());
+                    return await Factory.GetHttpClientAsync(to, via, requestTokenProvider, requestProxyTokenProvider, clientCertificateToken, await timeoutHelper.GetCancellationTokenAsync());
                 }
                 finally
                 {
@@ -965,11 +1026,11 @@ namespace System.ServiceModel.Channels
                     _timeoutHelper = timeoutHelper;
                     _factory.ApplyManualAddressing(ref _to, ref _via, message);
                     _httpClient = await _channel.GetHttpClientAsync(_to, _via, _timeoutHelper);
-                    _httpRequestMessage = _channel.GetHttpRequestMessage(_via);
 
                     // The _httpRequestMessage field will be set to null by Cleanup() due to faulting
                     // or aborting, so use a local copy for exception handling within this method.
-                    HttpRequestMessage httpRequestMessage = _httpRequestMessage;
+                    HttpRequestMessage httpRequestMessage = _channel.GetHttpRequestMessage(_via);
+                    _httpRequestMessage = httpRequestMessage;
                     Message request = message;
 
                     try
@@ -986,9 +1047,10 @@ namespace System.ServiceModel.Channels
 
                         if (!suppressEntityBody)
                         {
-                            _httpRequestMessage.Content = MessageContent.Create(_factory, request, _timeoutHelper);
+                            httpRequestMessage.Content = MessageContent.Create(_factory, request, _timeoutHelper);
                         }
 
+#if FEATURE_NETNATIVE // UAP doesn't support Expect Continue so we do a HEAD request to get authentication done before sending the real request
                         try
                         {
                             // There is a possibility that a HEAD pre-auth request might fail when the actual request
@@ -997,6 +1059,7 @@ namespace System.ServiceModel.Channels
                             await SendPreauthenticationHeadRequestIfNeeded();
                         }
                         catch { /* ignored */ }
+#endif
 
                         bool success = false;
                         var timeoutToken = await _timeoutHelper.GetCancellationTokenAsync();
@@ -1005,13 +1068,13 @@ namespace System.ServiceModel.Channels
                         {
                             using (timeoutToken.Register(s_cancelCts, _httpSendCts))
                             { 
-                                _httpResponseMessage = await _httpClient.SendAsync(_httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, _httpSendCts.Token);
+                                _httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, _httpSendCts.Token);
                             }
 
                             // As we have the response message and no exceptions have been thrown, the request message has completed it's job.
                             // Calling Dispose() on the request message to free up resources in HttpContent, but keeping the object around
                             // as we can still query properties once dispose'd.
-                            _httpRequestMessage.Dispose();
+                            httpRequestMessage.Dispose();
                             success = true;
                         }
                         catch (HttpRequestException requestException)
@@ -1201,7 +1264,7 @@ namespace System.ServiceModel.Channels
                             }
                             else if (string.Compare(name, "user-agent", StringComparison.OrdinalIgnoreCase) == 0)
                             {
-                                _httpRequestMessage.Headers.UserAgent.Add(ProductInfoHeaderValue.Parse(value));
+                                _httpRequestMessage.Headers.Add(name, value);
                             }
                             else if (string.Compare(name, "if-modified-since", StringComparison.OrdinalIgnoreCase) == 0)
                             {
@@ -1295,7 +1358,7 @@ namespace System.ServiceModel.Channels
 
                 private async Task SendPreauthenticationHeadRequestIfNeeded()
                 {
-                    if (!AuthenticationSchemeMayRequireResend())
+                    if (!_factory.AuthenticationSchemeMayRequireResend())
                     {
                         return;
                     }
@@ -1312,11 +1375,6 @@ namespace System.ServiceModel.Channels
 
                     var cancelToken = await _timeoutHelper.GetCancellationTokenAsync();
                     await _httpClient.SendAsync(headHttpRequestMessage, cancelToken);
-                }
-
-                private bool AuthenticationSchemeMayRequireResend()
-                {
-                    return _factory.AuthenticationScheme != AuthenticationSchemes.Anonymous;
                 }
             }
         }

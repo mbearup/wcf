@@ -56,7 +56,8 @@ namespace System.IdentityModel
 
     public static unsafe int AcquireDefaultCredential(string package, CredentialUse intent, ref AuthIdentityEx authIdentity, out SafeFreeCredentials outCredential)
     {
-      int num = -1;
+      throw new NotImplementedException("AcquireCredentialsHandleW not supported");
+      /* int num = -1;
       outCredential = new SafeFreeCredentials();
       RuntimeHelpers.PrepareConstrainedRegions();
       try
@@ -69,12 +70,13 @@ namespace System.IdentityModel
         if (num != 0)
           outCredential.SetHandleAsInvalid();
       }
-      return num;
+      return num; */
     }
 
     public static unsafe int AcquireCredentialsHandle(string package, CredentialUse intent, ref SecureCredential authdata, out SafeFreeCredentials outCredential)
     {
-      int num1 = -1;
+      throw new NotImplementedException("AcquireCredentialsHandleW not supported");
+      /* int num1 = -1;
       IntPtr certContextArray = authdata.certContextArray;
       try
       {
@@ -91,19 +93,20 @@ namespace System.IdentityModel
           long timeStamp;
           num1 = SafeFreeCredentials.AcquireCredentialsHandleW((string) null, package, (int) intent, (void*) null, ref authdata, (void*) null, (void*) null, ref outCredential._handle, out timeStamp);
           if (num1 != 0)
-            outCredential.SetHandleAsInvalid();
+             outCredential.SetHandleAsInvalid();
         }
       }
       finally
       {
         authdata.certContextArray = certContextArray;
       }
-      return num1;
+      return num1; */
     }
 
     public static unsafe int AcquireCredentialsHandle(string package, CredentialUse intent, ref IntPtr ppAuthIdentity, out SafeFreeCredentials outCredential)
     {
-      int num = -1;
+      throw new NotImplementedException("AcquireCredentialsHandleW not supported");
+      /* int num = -1;
       outCredential = new SafeFreeCredentials();
       RuntimeHelpers.PrepareConstrainedRegions();
       try
@@ -115,16 +118,18 @@ namespace System.IdentityModel
         num = SafeFreeCredentials.AcquireCredentialsHandleW((string) null, package, (int) intent, (void*) null, ppAuthIdentity, (void*) null, (void*) null, ref outCredential._handle, out timeStamp);
         if (num != 0)
           outCredential.SetHandleAsInvalid();
+        throw new NotImplementedException("AcquireCredentialsHandleW not supported");
       }
-      return num;
+      return num; */
     }
 
     protected override bool ReleaseHandle()
     {
-      return SafeFreeCredentials.FreeCredentialsHandle(ref this._handle) == 0;
+      // return SafeFreeCredentials.FreeCredentialsHandle(ref this._handle) == 0;
+      throw new NotImplementedException("FreeCredentialsHandle not supported");
     }
 
-    [DllImport("SspiCli.Dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    /*[DllImport("SspiCli.Dll", CharSet = CharSet.Unicode, SetLastError = true)]
     internal static extern unsafe int AcquireCredentialsHandleW([In] string principal, [In] string moduleName, [In] int usage, [In] void* logonID, [In] ref AuthIdentityEx authdata, [In] void* keyCallback, [In] void* keyArgument, ref SSPIHandle handlePtr, out long timeStamp);
 
     [DllImport("SspiCli.Dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -136,6 +141,6 @@ namespace System.IdentityModel
     [SuppressUnmanagedCodeSecurity]
     [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
     [DllImport("SspiCli.Dll", SetLastError = true)]
-    internal static extern int FreeCredentialsHandle(ref SSPIHandle handlePtr);
+    internal static extern int FreeCredentialsHandle(ref SSPIHandle handlePtr);*/
   }
 }

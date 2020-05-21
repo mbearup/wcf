@@ -614,10 +614,10 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        private void OnWrite(Task antecedant, Object state)
+        private void OnWrite(Task antecedent, Object state)
         {
             Contract.Requires(_writeResult == null, "StreamConnection: OnWrite called twice.");
-            _writeResult = antecedant;
+            _writeResult = antecedent;
             _writeCallback(state);
         }
 
@@ -721,10 +721,10 @@ namespace System.ServiceModel.Channels
             return _bytesRead;
         }
 
-        private void OnRead(Task<int> antecedant, object state)
+        private void OnRead(Task<int> antecedent, object state)
         {
             Contract.Requires(_readResult == null, "StreamConnection: OnRead called twice.");
-            _readResult = antecedant;
+            _readResult = antecedent;
             _readCallback(state);
         }
 

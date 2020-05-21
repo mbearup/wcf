@@ -13,6 +13,9 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.Threading.Tasks;
+#if FEATURE_NETNATIVE
+using Windows.Security.Cryptography.Certificates;
+#endif
 
 namespace System.ServiceModel.Channels
 {
@@ -130,6 +133,7 @@ namespace System.ServiceModel.Channels
             {
                 return null;
             }
+
             SecurityTokenProvider certificateProvider = TransportSecurityHelpers.GetCertificateTokenProvider(
                 SecurityTokenManager, target, via, Scheme, channelParameters);
             SecurityUtils.OpenTokenProviderIfRequired(certificateProvider, timeout);
@@ -169,29 +173,25 @@ namespace System.ServiceModel.Channels
             return tokenContainer;
         }
 
-        private void AddServerCertMappingOrSetRemoteCertificateValidationCallback(ServiceModelHttpMessageHandler messageHandler, EndpointAddress to)
+        private void AddServerCertMappingOrSetRemoteCertificateValidationCallback(HttpClientHandler httpClientHandler, EndpointAddress to)
         {
-            Fx.Assert(messageHandler != null, "httpMessageHandler should not be null.");
+            Fx.Assert(httpClientHandler != null, "httpClientHandler should not be null.");
             if (_sslCertificateValidator != null)
             {
-                if (!messageHandler.SupportsCertificateValidationCallback)
-                {
-                    throw ExceptionHelper.PlatformNotSupported("Server certificate validation not supported yet");
-                }
-                messageHandler.ServerCertificateValidationCallback = _remoteCertificateValidationCallback;
+                httpClientHandler.ServerCertificateCustomValidationCallback = _remoteCertificateValidationCallback;
             }
             else
             {
                 if (to.Identity is X509CertificateEndpointIdentity)
                 {
-                    HttpTransportSecurityHelpers.SetServerCertificateValidationCallback(messageHandler);
+                    HttpTransportSecurityHelpers.SetServerCertificateValidationCallback(httpClientHandler);
                 }
             }
         }
 
         private bool RemoteCertificateValidationCallback(HttpRequestMessage sender, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            Fx.Assert(_sslCertificateValidator != null, "sslCertificateAuthentidation should not be null.");
+            Fx.Assert(_sslCertificateValidator != null, "sslCertificateValidator should not be null.");
 
             try
             {
@@ -215,9 +215,9 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        internal override ServiceModelHttpMessageHandler GetHttpMessageHandler(EndpointAddress to, SecurityTokenContainer clientCertificateToken)
+        internal override HttpClientHandler GetHttpClientHandler(EndpointAddress to, SecurityTokenContainer clientCertificateToken)
         {
-            ServiceModelHttpMessageHandler handler = base.GetHttpMessageHandler(to, clientCertificateToken);
+            HttpClientHandler handler = base.GetHttpClientHandler(to, clientCertificateToken);
             if (RequireClientCertificate)
             {
                 SetCertificate(handler, clientCertificateToken);
@@ -227,18 +227,34 @@ namespace System.ServiceModel.Channels
             return handler;
         }
 
-        private static void SetCertificate(ServiceModelHttpMessageHandler handler, SecurityTokenContainer clientCertificateToken)
+        internal override bool IsExpectContinueHeaderRequired => RequireClientCertificate || base.IsExpectContinueHeaderRequired;
+
+        private static void SetCertificate(HttpClientHandler handler, SecurityTokenContainer clientCertificateToken)
         {
             if (clientCertificateToken != null)
             {
-                if (!handler.SupportsClientCertificates)
-                {
-                    throw ExceptionHelper.PlatformNotSupported("Client certificates not supported yet");
-                }
-
                 X509SecurityToken x509Token = (X509SecurityToken)clientCertificateToken.Token;
+                ValidateClientCertificate(x509Token.Certificate);
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
                 handler.ClientCertificates.Add(x509Token.Certificate);
             }
+        }
+
+        private static void ValidateClientCertificate(X509Certificate2 certificate)
+        {
+#if FEATURE_NETNATIVE
+            var query = new CertificateQuery
+            {
+                Thumbprint = certificate.GetCertHash(),
+                IncludeDuplicates = false,
+                StoreName = "MY"
+            };
+
+            if (CertificateStores.FindAllAsync(query).AsTask().GetAwaiter().GetResult().Count == 0)
+            {
+                throw ExceptionHelper.PlatformNotSupported("Certificate could not be found in the MY store.");
+            };
+#endif // FEATURE_NETNATIVE
         }
 
         protected class HttpsClientRequestChannel : HttpClientRequestChannel

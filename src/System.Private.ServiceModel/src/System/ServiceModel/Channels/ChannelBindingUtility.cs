@@ -30,7 +30,7 @@ namespace System.ServiceModel.Channels
         {
             return GetToken(stream.TransportContext);
         }
-#endif // !FEATURE_NETNATIVE
+#endif
 
         public static ChannelBinding GetToken(TransportContext context)
         {

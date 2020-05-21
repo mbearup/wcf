@@ -18,7 +18,6 @@ def osGroupMap = ['Ubuntu':'Linux',
                   'OSX10.12':'OSX',
                   'Windows_NT':'Windows_NT',
                   'CentOS7.1': 'Linux',
-                  'OpenSUSE13.2': 'Linux',
                   'RHEL7.2': 'Linux']
 
 // Map of osName -> nuget runtime
@@ -26,10 +25,8 @@ def targetNugetRuntimeMap = ['OSX10.12' : 'osx.10.12-x64',
                              'Ubuntu' : 'ubuntu.14.04-x64',
                              'Ubuntu14.04' : 'ubuntu.14.04-x64',
                              'Ubuntu16.04' : 'ubuntu.16.04-x64',
-                             'Fedora23' : 'fedora.23-x64',
                              'Debian8.4' : 'debian.8-x64',
                              'CentOS7.1' : 'centos.7-x64',
-                             'OpenSUSE13.2' : 'opensuse.13.2-x64',
                              'RHEL7.2': 'rhel.7-x64']
 
 def osShortName = ['Windows 10': 'win10',
@@ -41,8 +38,6 @@ def osShortName = ['Windows 10': 'win10',
                    'Ubuntu16.04' : 'ubuntu16.04',
                    'CentOS7.1' : 'centos7.1',
                    'Debian8.4' : 'debian8.4',
-                   'OpenSUSE13.2' : 'opensuse13.2',
-                   'Fedora23' : 'fedora23',
                    'RHEL7.2' : 'rhel7.2']
 
 def configurationGroupList = ['Debug', 'Release']
@@ -63,12 +58,20 @@ class WcfUtilities
 
         // workaround after branchifying - each branch independently runs this file hence our serial
         // numbers will overlap on different branches
+        // Strictly speaking this file only needs to specify the starting point for the serial numbers of the branch it is in
+        // We are showing the starting points of other branches for the sake of clarity
         if (branch.toLowerCase() == "release/1.0.0") {
             currentWcfPRService = wcfPRServiceCount + 100
         } else if (branch.toLowerCase() == "release/1.1.0") {
+            currentWcfPRService = wcfPRServiceCount + 150
+        } else if (branch.toLowerCase() == "release/2.0.0") {
             currentWcfPRService = wcfPRServiceCount + 200
-        } else if (branch.toLowerCase() == "ws-trust") {
+        } else if (branch.toLowerCase() == "release/2.1.0") {
+            currentWcfPRService = wcfPRServiceCount + 250
+        } else if (branch.toLowerCase() == "release/uwp6.0") {
             currentWcfPRService = wcfPRServiceCount + 300
+        } else if (branch.toLowerCase() == "release/uwp6.1") {
+            currentWcfPRService = wcfPRServiceCount + 350
         }
 
         job.with { 
@@ -153,10 +156,12 @@ wcfUtilities = new WcfUtilities()
         def os = 'Windows_NT'
         def newJobName = "outerloop_selfhost_${os.toLowerCase()}_${configurationGroup.toLowerCase()}"
         def newJob = job(Utilities.getFullJobName(project, newJobName, isPR))
+        def targetGroup = "netcoreapp"
         
         newJob.with {
             steps {
-                batchFile("build.cmd -${configurationGroup} -outerloop -- /p:OSGroup=${osGroupMap[os]}")
+                batchFile("build.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]}")
+                batchFile("build-tests.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]} -outerloop -- /p:IsCIBuild=true")
             }
         }
 
@@ -166,7 +171,7 @@ wcfUtilities = new WcfUtilities()
         // Set up standard options.
         Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
         // Add the unit test results
-        Utilities.addXUnitDotNETResults(newJob, 'bin/tests/**/testResults.xml')
+        Utilities.addXUnitDotNETResults(newJob, 'bin/**/testResults.xml')
         
         // Set up appropriate triggers. PR on demand, otherwise on change pushed
         if (isPR) {
@@ -185,26 +190,31 @@ wcfUtilities = new WcfUtilities()
 // Subset runs on every PR, the ones that don't run per PR can be requested via a magic phrase
 // **************************
 
-def supportedFullCycleOuterloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu16.04', 'Debian8.4', 'CentOS7.1', 'OpenSUSE13.2', 'Fedora23', 'RHEL7.2', 'OSX10.12']
+def supportedFullCycleOuterloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu16.04', 'Debian8.4', 'CentOS7.1', 'RHEL7.2', 'OSX10.12']
 [true, false].each { isPR ->
     configurationGroupList.each { configurationGroup ->
         supportedFullCycleOuterloopPlatforms.each { os ->
             def newJobName = "outerloop_${os.toLowerCase()}_${configurationGroup.toLowerCase()}"
             def newJob = job(Utilities.getFullJobName(project, newJobName, isPR))
+            def targetGroup = "netcoreapp"
             
             wcfUtilities.addWcfOuterloopTestServiceSync(newJob, os, branch, isPR)
             
             if (osGroupMap[os] == 'Windows_NT') {
                 newJob.with {
                     steps {
-                        batchFile("build.cmd -${configurationGroup} -outerloop -- /p:OSGroup=${osGroupMap[os]} /p:ServiceUri=%WcfServiceUri% /p:SSL_Available=true /p:Root_Certificate_Installed=true /p:Client_Certificate_Installed=true /p:Peer_Certificate_Installed=true")
+                        batchFile("build.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]}")
+                        batchFile("build-tests.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]} -outerloop -- /p:ServiceUri=%WcfServiceUri% /p:SSL_Available=true /p:Root_Certificate_Installed=true /p:Client_Certificate_Installed=true /p:Peer_Certificate_Installed=true /p:IsCIBuild=true")
                     }
                 }
-            } 
+            }
+            // We have enabled all certificate tests except peer trust tests on linux OSs. Enabling peer trust tests on Linux OSs
+            // needs further investigations.
             else {
                 newJob.with {
                     steps {
-                        shell("HOME=\$WORKSPACE/tempHome ./build.sh -${configurationGroup.toLowerCase()} -outerloop -testWithLocalLibraries -- /p:OSGroup=${osGroupMap[os]} /p:ServiceUri=\$WcfServiceUri /p:SSL_Available=true /p:Root_Certificate_Installed=true /p:Client_Certificate_Installed=true /p:Peer_Certificate_Installed=true")
+                        shell("HOME=\$WORKSPACE/tempHome ./build.sh -${configurationGroup.toLowerCase()}")
+                        shell("HOME=\$WORKSPACE/tempHome ./build-tests.sh -${configurationGroup.toLowerCase()} -outerloop -testWithLocalLibraries -- /p:OSGroup=${osGroupMap[os]} /p:ServiceUri=\$WcfServiceUri /p:SSL_Available=true /p:Client_Certificate_Installed=true /p:Root_Certificate_Installed=true /p:IsCIBuild=true")
                     }
                 }
             }
@@ -224,7 +234,7 @@ def supportedFullCycleOuterloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
             // Set up standard options.
             Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
             // Add the unit test results
-            Utilities.addXUnitDotNETResults(newJob, 'bin/tests/**/testResults.xml')
+            Utilities.addXUnitDotNETResults(newJob, 'bin/**/testResults.xml')
             // Add archival for the built data.
             Utilities.addArchival(newJob, "msbuild.log", '', doNotFailIfNothingArchived=true, archiveOnlyIfSuccessful=false)
 
@@ -261,11 +271,12 @@ def supportedFullCycleOuterloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
 // Subset runs on every PR, the ones that don't run per PR can be requested via a magic phrase
 // **************************
 
-def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu16.04', 'Debian8.4', 'CentOS7.1', 'OpenSUSE13.2', 'Fedora23', 'RHEL7.2', 'OSX10.12']
+def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu16.04', 'Debian8.4', 'CentOS7.1', 'RHEL7.2', 'OSX10.12']
 [true, false].each { isPR ->
     configurationGroupList.each { configurationGroup ->
         supportedFullCycleInnerloopPlatforms.each { os -> 
             def newJobName = "${os.toLowerCase()}_${configurationGroup.toLowerCase()}"
+            def targetGroup = "netcoreapp"
             
             def newJob = job(Utilities.getFullJobName(project, newJobName, isPR))
             
@@ -273,7 +284,8 @@ def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
             {
                 newJob.with {
                     steps {
-                        batchFile("call \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" x86 && build.cmd -${configurationGroup} -- /p:OSGroup=${osGroupMap[os]}")
+                        batchFile("call \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" x86 && build.cmd -${configurationGroup} -os:${osGroupMap[os]} -framework:${targetGroup}")
+                        batchFile("call \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" x86 && build-tests.cmd -${configurationGroup} -os:${osGroupMap[os]} -framework:${targetGroup} -- /p:IsCIBuild=true")
                         batchFile("C:\\Packer\\Packer.exe .\\bin\\build.pack .\\bin")
                     }
                 }
@@ -281,7 +293,9 @@ def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
             else {
                 newJob.with {
                     steps {
-                        shell("HOME=\$WORKSPACE/tempHome ./build.sh -${configurationGroup.toLowerCase()} -- /p:ShouldGenerateNuSpec=false /p:OSGroup=${osGroupMap[os]}")
+                    def useServerGC = (configurationGroup == 'Release' && isPR) ? 'useServerGC' : ''
+                        shell("HOME=\$WORKSPACE/tempHome ./build.sh -${configurationGroup.toLowerCase()} -framework:${targetGroup} -os:${osGroupMap[os]}")
+                        shell("HOME=\$WORKSPACE/tempHome ./build-tests.sh -${configurationGroup.toLowerCase()} -framework:${targetGroup} -os:${osGroupMap[os]} -- ${useServerGC} /p:IsCIBuild=true")
                     }
                 }
             }
@@ -291,7 +305,7 @@ def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
             // Set up standard options
             Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
             // Add the unit test results
-            Utilities.addXUnitDotNETResults(newJob, 'bin/tests/**/testResults.xml')
+            Utilities.addXUnitDotNETResults(newJob, 'bin/**/testResults.xml')
 
             def archiveContents = "msbuild.log"
 
@@ -322,6 +336,51 @@ def supportedFullCycleInnerloopPlatforms = ['Windows_NT', 'Ubuntu14.04', 'Ubuntu
         }
     }
 }
+
+// **************************
+// Define outerloop testing on Windows_NT for UAP, run locally on each machine.
+// **************************
+
+// [true, false].each { isPR -> 
+    // configurationGroupList.each { configurationGroup ->
+        // def os = 'Windows_NT'
+        // def newJobName = "outerloop_${os.toLowerCase()}_UAP_${configurationGroup.toLowerCase()}"
+        // def newJob = job(Utilities.getFullJobName(project, newJobName, isPR))
+        // def targetGroup = "uap"
+        
+        // newJob.with {
+            // steps {
+                // batchFile("build.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]}")
+                // batchFile("build-tests.cmd -framework:${targetGroup} -${configurationGroup} -os:${osGroupMap[os]} -outerloop -- /p:ServiceUri=%WcfServiceUri% /p:SSL_Available=true /p:Root_Certificate_Installed=true /p:Client_Certificate_Installed=true /p:Peer_Certificate_Installed=true /p:IsCIBuild=true")
+            // }
+        // }
+
+        // // Set affinity for elevated machines
+        // Utilities.setMachineAffinity(newJob, os, 'latest-or-auto-elevated')
+
+        // // Set up standard options.
+        // Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
+        // // Add the unit test results
+        // Utilities.addXUnitDotNETResults(newJob, 'bin/**/testResults.xml')
+
+        // // Our outerloops rely on us calling WcfPRServiceUri to sync server code, after which the client 
+            // // will test against WcfServiceUri.
+            // // The current design limitation means that if we allow concurrent builds, it becomes possible to pave over 
+            // // the server endpoint with mismatched code while another test is running.
+            // // Due to this design limitation, we have to disable concurrent builds for outerloops 
+            // newJob.concurrentBuild(false)
+        
+        // // Set up appropriate triggers. PR on demand, otherwise on change pushed
+        // if (isPR) {
+            // // Set PR trigger.
+            // Utilities.addGithubPRTriggerForBranch(newJob, branch, "OuterLoop ${os} ${configurationGroup}", "(?i).*test\\W+(all\\W+outerloop|outerloop\\W+${os}).*", false /*triggerOnPhraseOnly*/)
+        // } 
+        // else {
+            // // Set a push trigger
+            // Utilities.addGithubPushTrigger(newJob)
+        // }
+    // } 
+// } 
 
 JobReport.Report.generateJobReport(out)
 

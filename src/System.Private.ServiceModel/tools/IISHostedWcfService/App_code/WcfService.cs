@@ -424,6 +424,32 @@ namespace WcfService
             return value;
         }
 
+        public bool IsHttpKeepAliveDisabled()
+        {
+            MessageProperties properties = new MessageProperties(OperationContext.Current.IncomingMessageProperties);
+            var property = (HttpRequestMessageProperty)properties[HttpRequestMessageProperty.Name];
+            WebHeaderCollection collection = property.Headers;
+            string connectionValue = collection.Get(Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Connection));
+            return connectionValue.Equals("Close", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public Dictionary<string, string> GetRequestHttpHeaders()
+        {
+            var headers = new Dictionary<string, string>();
+            object httpReqMessagePropObj;
+            if (OperationContext.Current.IncomingMessageProperties.TryGetValue(HttpRequestMessageProperty.Name,
+                out httpReqMessagePropObj))
+            {
+                var httpRequestMessageProperty = (HttpRequestMessageProperty)httpReqMessagePropObj;
+                foreach (var headerName in httpRequestMessageProperty.Headers.AllKeys)
+                {
+                    headers.Add(headerName, httpRequestMessageProperty.Headers[headerName]);
+                }
+            }
+
+            return headers;
+        }
+
         private static string StreamToString(Stream stream)
         {
             var reader = new StreamReader(stream, Encoding.UTF8);

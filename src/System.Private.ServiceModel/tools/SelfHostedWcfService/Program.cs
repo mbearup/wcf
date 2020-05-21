@@ -43,7 +43,7 @@ namespace SelfHostedWCFService
             CreateHost<BasicHttpsTestServiceHost, WcfService.WcfService>("BasicHttps.svc", httpsBaseAddress);
             CreateHost<BasicHttpTestServiceHost, WcfService.WcfService>("BasicHttp.svc", httpBaseAddress);
             CreateHost<BasicHttpTestServiceHost_4_4_0, WcfService_4_4_0>("BasicHttp_4_4_0.svc", httpBaseAddress);            
-            CreateHost<BasicHttpSoapTestServiceHost, WcfSoapService>("BasicHttpSoap.svc", httpBaseAddress);            
+            CreateHost<BasicHttpSoapTestServiceHost, WcfSoapService>("BasicHttpSoap.svc", httpBaseAddress);
             CreateHost<CustomTextEncoderBufferedTestServiceHost,WcfService.WcfService>("CustomTextEncoderBuffered.svc", httpBaseAddress);
             CreateHost<CustomTextEncoderStreamedTestServiceHost, WcfService.WcfService>("CustomTextEncoderStreamed.svc", httpBaseAddress);
             CreateHost<DefaultCustomHttpTestServiceHost, WcfService.WcfService>("DefaultCustomHttp.svc", httpBaseAddress);
@@ -60,8 +60,10 @@ namespace SelfHostedWCFService
             CreateHost<HttpsNtlmTestServiceHost, WcfService.WcfService>("WindowAuthenticationNtlm/HttpsNtlm.svc", httpsBaseAddress);
             CreateHost<HttpSoap11TestServiceHost, WcfService.WcfService>("HttpSoap11.svc", httpBaseAddress);
             CreateHost<HttpsSoap11TestServiceHost, WcfService.WcfService>("HttpsSoap11.svc", httpsBaseAddress);
+            CreateHost<HttpSoap11WSA2004TestServiceHost, WcfService.WcfService>("HttpSoap11WSA2004.svc", httpBaseAddress);
             CreateHost<HttpsSoap12TestServiceHost, WcfService.WcfService>("HttpsSoap12.svc", httpsBaseAddress);
             CreateHost<HttpSoap12TestServiceHost, WcfService.WcfService>("HttpSoap12.svc", httpBaseAddress);
+            CreateHost<HttpSoap12WSA2004TestServiceHost, WcfService.WcfService>("HttpSoap12WSA2004.svc", httpBaseAddress);
             CreateHost<HttpsWindowsTestServiceHost, WcfService.WcfService>("WindowAuthenticationNegotiate/HttpsWindows.svc", httpsBaseAddress);
             CreateHost<HttpWindowsTestServiceHost, WcfService.WcfService>("WindowAuthenticationNegotiate/HttpWindows.svc", httpBaseAddress);
             CreateHost<NetHttpTestServiceHost, WcfService.WcfService>("NetHttp.svc", httpBaseAddress);
@@ -84,6 +86,7 @@ namespace SelfHostedWCFService
             CreateHost<TcpNoSecurityTestServiceHost, WcfService.WcfService>("TcpNoSecurity.svc", tcpBaseAddress);
             CreateHost<TcpDefaultResourceTestServiceHost, WcfService.WcfService>("TcpDefault.svc", tcpBaseAddress);
             CreateHost<TcpNoSecurityTextTestServiceHost, WcfService.WcfService>("TcpNoSecurityText.svc", tcpBaseAddress);
+            CreateHost<TcpInvalidEkuServerCertTestServiceHost, WcfService.WcfService>("TcpInvalidEkuServerCert.svc", tcpBaseAddress);
             CreateHost<TcpRevokedServerCertTestServiceHost, WcfService.WcfService>("TcpRevokedServerCert.svc", tcpBaseAddress);
             CreateHost<TcpStreamedNoSecurityTestServiceHost, WcfService.WcfService>("TcpStreamedNoSecurity.svc", tcpBaseAddress);
             CreateHost<TcpTransportSecuritySslCustomCertValidationTestServiceHost, WcfService.WcfService>("TcpTransportSecuritySslCustomCertValidation.svc", tcpBaseAddress);
@@ -116,6 +119,12 @@ namespace SelfHostedWCFService
             CreateHost<DataContractResolverTestServiceHost, WcfService.DataContractResolverService>("DataContractResolver.svc", httpBaseAddress);
             CreateHost<UnderstoodHeadersServiceHost, WcfService.UnderstoodHeaders>("UnderstoodHeaders.svc", httpBaseAddress);
             CreateHost<XmlSFAttributeTestServiceHost, WcfService.XmlSFAttribute>("XmlSFAttribute.svc", httpBaseAddress);
+            CreateHost<XmlSerializerICalculatorServiceHost, RpcEncSingleNsService>("BasicHttpRpcEncSingleNs.svc", httpBaseAddress);
+            CreateHost<XmlSerializerICalculatorServiceHost, RpcLitSingleNsService>("BasicHttpRpcLitSingleNs.svc", httpBaseAddress);
+            CreateHost<XmlSerializerICalculatorServiceHost, DocLitSingleNsService>("BasicHttpDocLitSingleNs.svc", httpBaseAddress);
+            CreateHost<XmlSerializerDualContractServiceHost, RpcEncDualNsService>("BasicHttpRpcEncDualNs.svc", httpBaseAddress);
+            CreateHost<XmlSerializerDualContractServiceHost, RpcLitDualNsService>("BasicHttpRpcLitDualNs.svc", httpBaseAddress);
+            CreateHost<XmlSerializerDualContractServiceHost, DocLitDualNsService>("BasicHttpDocLitDualNs.svc", httpBaseAddress);
 
             //Start the crlUrl service last as the client use it to ensure all services have been started
             Uri testHostUrl = new Uri(string.Format("http://localhost/TestHost.svc", s_httpPort));
