@@ -30,6 +30,7 @@ namespace System.ServiceModel.Channels
         {
             return GetToken(stream.TransportContext);
         }
+#endif
 
         public static ChannelBinding GetToken(TransportContext context)
         {

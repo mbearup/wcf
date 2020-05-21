@@ -27,14 +27,6 @@ namespace System.ServiceModel.Channels
 #region Fromwcf
 //         private static AddressingVersion addressing200408 = new AddressingVersion("http://schemas.xmlsoap.org/ws/2004/08/addressing", XD.Addressing200408Dictionary.Namespace, "Addressing200408ToStringFormat", AddressingVersion.Addressing200408SignedMessageParts, "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous", XD.Addressing200408Dictionary.Anonymous, (string) null, "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault", "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault");
 
-        public static AddressingVersion WSAddressingAugust2004
-        {
-          get
-          {
-             throw new NotImplementedException("WSAddressingAugust2004 not implemented in .NET Core");
-//             return AddressingVersion.addressing200408;
-          }
-        }
 #endregion
 
         private static AddressingVersion s_none = new AddressingVersion(AddressingNoneStrings.Namespace, XD.AddressingNoneDictionary.Namespace,
