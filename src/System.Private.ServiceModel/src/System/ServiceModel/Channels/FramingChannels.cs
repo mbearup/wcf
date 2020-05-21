@@ -20,16 +20,16 @@ namespace System.ServiceModel.Channels
         private bool _exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ChannelManagerBase manager, IConnectionOrientedTransportFactorySettings settings,
-            EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddresss, Uri via, bool exposeConnectionProperty)
-            : base(manager, settings, localAddress, localVia, remoteAddresss, via)
+            EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
+            : base(manager, settings, localAddress, localVia, remoteAddress, via)
         {
             _exposeConnectionProperty = exposeConnectionProperty;
         }
 
         protected FramingDuplexSessionChannel(ChannelManagerBase factory, IConnectionOrientedTransportFactorySettings settings,
-            EndpointAddress remoteAddresss, Uri via, bool exposeConnectionProperty)
+            EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
             : this(factory, settings, s_anonymousEndpointAddress, settings.MessageVersion.Addressing == AddressingVersion.None ? null : new Uri("http://www.w3.org/2005/08/addressing/anonymous"),
-            remoteAddresss, via, exposeConnectionProperty)
+            remoteAddress, via, exposeConnectionProperty)
         {
             this.Session = FramingConnectionDuplexSession.CreateSession(this, settings.Upgrade);
         }
@@ -182,9 +182,9 @@ namespace System.ServiceModel.Channels
         private bool _flowIdentity;
 
         public ClientFramingDuplexSessionChannel(ChannelManagerBase factory, IConnectionOrientedTransportChannelFactorySettings settings,
-            EndpointAddress remoteAddresss, Uri via, IConnectionInitiator connectionInitiator, ConnectionPool connectionPool,
+            EndpointAddress remoteAddress, Uri via, IConnectionInitiator connectionInitiator, ConnectionPool connectionPool,
             bool exposeConnectionProperty, bool flowIdentity)
-            : base(factory, settings, remoteAddresss, via, exposeConnectionProperty)
+            : base(factory, settings, remoteAddress, via, exposeConnectionProperty)
         {
             _settings = settings;
             this.MessageEncoder = settings.MessageEncoderFactory.CreateSessionEncoder();
@@ -403,13 +403,7 @@ namespace System.ServiceModel.Channels
         {
             lock (ThisLock)
             {
-#if FEATURE_NETNATIVE
-                // As UWP apps use StreamSocket which can't downgrade a socket to not have SSL
-                // the connection can't be recycled back into the pool on close.
-                if (_upgrade != null || abort)
-#else
                 if (abort)
-#endif
                 {
                     _connectionPoolHelper.Abort();
                 }

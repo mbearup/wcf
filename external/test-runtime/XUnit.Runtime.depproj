@@ -13,6 +13,7 @@
     <NuGetTargetMonikerShort Condition="'$(TargetGroup)' == 'uapaot'">netstandard2.0</NuGetTargetMonikerShort>
     <NuGetTargetMoniker Condition="'$(TargetGroup)' == 'uap'">.NETStandard,Version=v2.0</NuGetTargetMoniker>
     <NuGetTargetMonikerShort Condition="'$(TargetGroup)' == 'uap'">netstandard2.0</NuGetTargetMonikerShort>
+    <NoWarn>$(NoWarn);NU1603</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.console.netcore">
@@ -52,10 +53,10 @@
       <Version>4.6.519</Version>
     </PackageReference>
     <PackageReference Include="ReportGenerator">
-      <Version>2.5.0</Version>
+      <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="System.IO.Compression.TestData">
-      <Version>1.0.5-prerelease</Version>
+      <Version>1.0.6-prerelease</Version>
     </PackageReference>
     <PackageReference Include="System.IO.Packaging.TestData">
       <Version>1.0.0-prerelease</Version>
@@ -65,6 +66,9 @@
     </PackageReference>
     <PackageReference Include="System.Net.TestData">
       <Version>1.0.0-prerelease</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions">
+      <Version>2.0.4</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetGroup)' == 'netfx'">
@@ -81,7 +85,18 @@
     <PackageToInclude Include="Microsoft.xunit.netcore.extensions"/>
     <PackageToInclude Include="Newtonsoft.Json"/>
     <PackageToInclude Include="$(XUnitRunnerPackageId)" />
+    <PackageToInclude Include="Microsoft.DotNet.PlatformAbstractions" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetGroup)' == 'uap'">
+    <UAPToolsPackageVersion>1.0.17</UAPToolsPackageVersion>
+  </PropertyGroup>
+ 
+  <ItemGroup Condition="'$(TargetGroup)' == 'uap'">
+    <PackageReference Include="Microsoft.DotNet.UAP.TestTools">
+      <Version>$(UAPToolsPackageVersion)</Version>
+    </PackageReference>
+  </ItemGroup>  
 
   <ItemGroup Condition="'$(TargetGroup)' != 'uapaot'">
     <PackageToInclude Include="xunit.performance.core"/>
@@ -101,10 +116,9 @@
           Condition="'$(TargetGroup)'=='uap'" >
 
     <PropertyGroup>
-      <UAPToolsPackageVersion>1.0.2</UAPToolsPackageVersion>
       <UAPToolsPackageName>microsoft.dotnet.uap.testtools</UAPToolsPackageName>
 
-      <UAPToolsFolder Condition="'$(UAPToolsFolder)'==''">$(PackagesDir)$(UAPToolsPackageName)\$(UAPToolsPackageVersion)\Tools</UAPToolsFolder>
+      <UAPToolsFolder Condition="'$(UAPToolsFolder)'==''">$(PackagesDir)$(UAPToolsPackageName)\$(UAPToolsPackageVersion)\Tools\$(ArchGroup)</UAPToolsFolder>
       <UAPToolsFolder>$(UAPToolsFolder.Replace('/', '\'))</UAPToolsFolder>
     </PropertyGroup>
 

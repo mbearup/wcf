@@ -155,5 +155,11 @@ namespace WcfService
             ReplyAction = "http://www.contoso.com/IXmlMessageContarctTestService/EchoMessageResquestWithMessageHeaderResponse")]
         [XmlSerializerFormat(SupportFaults = true)]
         XmlMessageContractTestResponse EchoMessageResquestWithMessageHeader(XmlMessageContractTestRequestWithMessageHeader request);
+
+        [OperationContract]
+        bool IsHttpKeepAliveDisabled();
+
+        [OperationContract]
+        Dictionary<string,string> GetRequestHttpHeaders();
     }
 }

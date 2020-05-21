@@ -1,14 +1,19 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <PreReleaseLabel>preview2</PreReleaseLabel>
+    <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
+    <PreReleaseLabel Condition="'$(PackageVersionStamp)' != ''">$(PackageVersionStamp)</PreReleaseLabel>
+    <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">servicing</PreReleaseLabel>
+    <IncludePreReleaseLabelInPackageVersion Condition="'$(StabilizePackageVersion)' != 'true' or '$(PackageVersionStamp)' != ''">true</IncludePreReleaseLabelInPackageVersion>
+    <IncludeBuildNumberInPackageVersion Condition="'$(StabilizePackageVersion)' == 'true'">false</IncludeBuildNumberInPackageVersion>
+    <IncludeBuildNumberInPackageVersion Condition="'$(StabilizePackageVersion)' != 'true'">true</IncludeBuildNumberInPackageVersion>
+    
     <PackageDescriptionFile>$(ProjectDir)pkg/descriptions.json</PackageDescriptionFile>
     <PackageLicenseFile>$(ProjectDir)LICENSE.TXT</PackageLicenseFile>
     <PackageThirdPartyNoticesFile>$(ProjectDir)THIRD-PARTY-NOTICES.TXT</PackageThirdPartyNoticesFile>
     <!--<RuntimeIdGraphDefinitionFile>$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>--> <!--Not needed for WCF-->
     <ReleaseNotes>https://go.microsoft.com/fwlink/?LinkID=799421</ReleaseNotes>
     <ProjectUrl>https://dot.net</ProjectUrl>
-    <!-- Add a condition for this when we are able to run on .NET Core -->
-    <PackagingTaskDir>$(ToolsDir)net46/</PackagingTaskDir>
+    <PackagingTaskDir>$(BuildToolsTaskDir)</PackagingTaskDir>
     <LicenseUrl>https://github.com/dotnet/corefx/blob/master/LICENSE.TXT</LicenseUrl>
     <!-- defined in buildtools packaging.targets, but we need this before targets are imported -->
     <PackagePlatform Condition="'$(PackagePlatform)' == ''">$(Platform)</PackagePlatform>
@@ -28,7 +33,11 @@
     <SkipBaseLineCheck>true</SkipBaseLineCheck>
 
     <!-- by default all packages will use the same version which revs with respect to product version -->
-    <PackageVersion Condition="'$(PackageVersion)' == ''">4.5.0</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">4.5.3</PackageVersion>
+    <!-- used to determine which package to use for harvesting purposes -->
+    <!-- by default will use last stable version listed in the packageIndex.json -->
+    <HarvestVersion>4.3.3</HarvestVersion>
+    
     <SkipValidatePackageTargetFramework>true</SkipValidatePackageTargetFramework>
     <SkipGenerationCheck>true</SkipGenerationCheck>
   </PropertyGroup>

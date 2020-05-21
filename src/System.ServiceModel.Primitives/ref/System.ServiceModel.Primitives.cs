@@ -107,7 +107,14 @@ namespace System.ServiceModel
         public virtual TChannel CreateChannel(System.ServiceModel.EndpointAddress address, System.Uri via) { return default(TChannel); }
         protected override System.ServiceModel.Description.ServiceEndpoint CreateDescription() { return default(System.ServiceModel.Description.ServiceEndpoint); }
     }
-    public abstract partial class ClientBase<TChannel> : System.ServiceModel.ICommunicationObject where TChannel : class
+    public partial class ChannelTerminatedException : System.ServiceModel.CommunicationException
+    {
+        public ChannelTerminatedException() { }
+        public ChannelTerminatedException(string message) { }
+        public ChannelTerminatedException(string message, System.Exception innerException) { }
+        protected ChannelTerminatedException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+    }
+    public abstract partial class ClientBase<TChannel> : System.IDisposable, System.ServiceModel.ICommunicationObject where TChannel : class
     {
         protected ClientBase() { }
         protected ClientBase(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) { }
@@ -126,6 +133,7 @@ namespace System.ServiceModel
         event System.EventHandler System.ServiceModel.ICommunicationObject.Opened { add { } remove { } }
         event System.EventHandler System.ServiceModel.ICommunicationObject.Opening { add { } remove { } }
         public void Abort() { }
+        public void Close() { }
         protected virtual TChannel CreateChannel() { return default(TChannel); }
         protected T GetDefaultValueForInitialization<T>() { return default(T); }
         protected void InvokeAsync(System.ServiceModel.ClientBase<TChannel>.BeginOperationDelegate beginOperationDelegate, object[] inValues, System.ServiceModel.ClientBase<TChannel>.EndOperationDelegate endOperationDelegate, System.Threading.SendOrPostCallback operationCompletedCallback, object userState) { }
@@ -139,6 +147,7 @@ namespace System.ServiceModel
         void System.ServiceModel.ICommunicationObject.EndOpen(System.IAsyncResult result) { }
         void System.ServiceModel.ICommunicationObject.Open() { }
         void System.ServiceModel.ICommunicationObject.Open(System.TimeSpan timeout) { }
+        void System.IDisposable.Dispose() { }
         protected delegate System.IAsyncResult BeginOperationDelegate(object[] inValues, System.AsyncCallback asyncCallback, object state);
         protected partial class ChannelBase<T> : System.IDisposable, System.ServiceModel.Channels.IChannel, System.ServiceModel.Channels.IOutputChannel, System.ServiceModel.Channels.IRequestChannel, System.ServiceModel.IClientChannel, System.ServiceModel.ICommunicationObject, System.ServiceModel.IContextChannel, System.ServiceModel.IExtensibleObject<System.ServiceModel.IContextChannel> where T : class
         {
@@ -681,6 +690,7 @@ namespace System.ServiceModel.Channels
         internal AddressingVersion() { }
         public static System.ServiceModel.Channels.AddressingVersion None { get { return default(System.ServiceModel.Channels.AddressingVersion); } }
         public static System.ServiceModel.Channels.AddressingVersion WSAddressing10 { get { return default(System.ServiceModel.Channels.AddressingVersion); } }
+        public static System.ServiceModel.Channels.AddressingVersion WSAddressingAugust2004 { get { return default(System.ServiceModel.Channels.AddressingVersion); } }
         public override string ToString() { return default(string); }
     }
     public sealed partial class BinaryMessageEncodingBindingElement : System.ServiceModel.Channels.MessageEncodingBindingElement
@@ -1222,7 +1232,9 @@ namespace System.ServiceModel.Channels
         public System.ServiceModel.EnvelopeVersion Envelope { get { return default(System.ServiceModel.EnvelopeVersion); } }
         public static System.ServiceModel.Channels.MessageVersion None { get { return default(System.ServiceModel.Channels.MessageVersion); } }
         public static System.ServiceModel.Channels.MessageVersion Soap11 { get { return default(System.ServiceModel.Channels.MessageVersion); } }
+        public static System.ServiceModel.Channels.MessageVersion Soap11WSAddressingAugust2004 { get { return default(System.ServiceModel.Channels.MessageVersion); } }
         public static System.ServiceModel.Channels.MessageVersion Soap12WSAddressing10 { get { return default(System.ServiceModel.Channels.MessageVersion); } }
+        public static System.ServiceModel.Channels.MessageVersion Soap12WSAddressingAugust2004 { get { return default(System.ServiceModel.Channels.MessageVersion); } }
         public static System.ServiceModel.Channels.MessageVersion CreateVersion(System.ServiceModel.EnvelopeVersion envelopeVersion) { return default(System.ServiceModel.Channels.MessageVersion); }
         public static System.ServiceModel.Channels.MessageVersion CreateVersion(System.ServiceModel.EnvelopeVersion envelopeVersion, System.ServiceModel.Channels.AddressingVersion addressingVersion) { return default(System.ServiceModel.Channels.MessageVersion); }
         public override bool Equals(object obj) { return default(bool); }

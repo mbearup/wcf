@@ -33,9 +33,7 @@ namespace System.ServiceModel.Channels
         private bool _unsafeConnectionNtlmAuthentication;
         private bool _useDefaultWebProxy;
         private WebSocketTransportSettings _webSocketSettings;
-#if !FEATURE_NETNATIVE
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
-#endif // !FEATURE_NETNATIVE
         private HttpMessageHandlerFactory _httpMessageHandlerFactory;
         private int _maxPendingAccepts;
 
@@ -51,6 +49,8 @@ namespace System.ServiceModel.Channels
             _maxBufferSize = TransportDefaults.MaxBufferSize;
             _maxPendingAccepts = HttpTransportDefaults.DefaultMaxPendingAccepts;
             _method = string.Empty;
+            _proxyAuthenticationScheme = HttpTransportDefaults.ProxyAuthenticationScheme;
+            _proxyAddress = HttpTransportDefaults.ProxyAddress;
             _realm = HttpTransportDefaults.Realm;
             _requestInitializationTimeout = HttpTransportDefaults.RequestInitializationTimeout;
             _transferMode = HttpTransportDefaults.TransferMode;
@@ -73,16 +73,16 @@ namespace System.ServiceModel.Channels
             _maxBufferSizeInitialized = elementToBeCloned._maxBufferSizeInitialized;
             _maxPendingAccepts = elementToBeCloned._maxPendingAccepts;
             _method = elementToBeCloned._method;
+            _proxyAddress = elementToBeCloned._proxyAddress;
+            _proxyAuthenticationScheme = elementToBeCloned._proxyAuthenticationScheme;
             _realm = elementToBeCloned._realm;
             _requestInitializationTimeout = elementToBeCloned._requestInitializationTimeout;
             _transferMode = elementToBeCloned._transferMode;
             _unsafeConnectionNtlmAuthentication = elementToBeCloned._unsafeConnectionNtlmAuthentication;
             _useDefaultWebProxy = elementToBeCloned._useDefaultWebProxy;
             _webSocketSettings = elementToBeCloned._webSocketSettings.Clone();
-#if !FEATURE_NETNATIVE
             _extendedProtectionPolicy = elementToBeCloned.ExtendedProtectionPolicy;
-#endif // !FEATURE_NETNATIVE
-            this.MessageHandlerFactory = elementToBeCloned.MessageHandlerFactory;
+            MessageHandlerFactory = elementToBeCloned.MessageHandlerFactory;
         }
 
         [DefaultValue(HttpTransportDefaults.AllowCookies)]
@@ -164,7 +164,6 @@ namespace System.ServiceModel.Channels
             }
         }
 
-#if !FEATURE_NETNATIVE
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
             get
@@ -187,7 +186,6 @@ namespace System.ServiceModel.Channels
                 _extendedProtectionPolicy = value;
             }
         }
-#endif // !FEATURE_NETNATIVE
 
         // MB#26970: used by MEX to ensure that we don't conflict on base-address scoped settings
         public bool InheritBaseAddressSettings
@@ -477,12 +475,10 @@ namespace System.ServiceModel.Channels
             {
                 return (T)(object)this.TransferMode;
             }
-#if !FEATURE_NETNATIVE
             else if (typeof(T) == typeof(ExtendedProtectionPolicy))
             {
                 return (T)(object)this.ExtendedProtectionPolicy;
             }
-#endif //!FEATURE_NETNATIVE
             else if (typeof(T) == typeof(ITransportCompressionSupport))
             {
                 return (T)(object)new TransportCompressionSupportHelper();
